@@ -1,0 +1,112 @@
+const mongoose = require("mongoose");
+const multer = require("multer");
+const session = require("../libs/session");
+
+/* the response object for API
+   error : true / false 
+   code : contains any error code
+   data : the object or array for data
+   memberMessage : the message for member, if any.
+ */
+
+var response = {
+  error: false,
+  status: 200,
+  data: null,
+  memberMessage: "",
+  errors: null
+};
+
+var NullResponseValue = function() {
+  response = {
+    error: false,
+    status: 200,
+    data: null,
+    memberMessage: "",
+    errors: null
+  };
+  return true;
+};
+
+var SendResponse = function(res, status) {
+  res.status(status || 200).send(response);
+  NullResponseValue();
+  return;
+};
+
+var methods = {};
+
+/*
+ Routings/controller goes here
+ */
+module.exports.controller = function(router) {
+  router.route("/media/:fileName").get((req, res) => {
+    res.sendFile(`${mediaPath}/${req.params.fileName}`);
+  });
+
+  router.route("/media").post(session.checkToken, methods.uploadMedia);
+};
+
+/*============================
+***   upload new media  ***
+==============================*/
+
+methods.uploadMedia = (req, res) => {
+  var storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+      cb(null, mediaPath);
+    },
+    filename: function(req, file, cb) {
+      let ext = file.originalname.split(".").pop();
+      req.fileName = `${Date.now()}.${ext}`;
+
+      // if (ext != "xls" && ext != "xlsx") req.error = "file format not supported";
+
+      cb(null, req.fileName);
+    }
+  });
+
+  var uploadfile = multer({
+    storage: storage
+  }).single("file");
+
+  uploadfile(req, res, err => {
+    if (err) {
+      //send response to client
+      response.error = true;
+      response.status = 500;
+      response.errors = err;
+      response.memberMessage = "server error";
+      response.data = null;
+      return SendResponse(res);
+    } else {
+      if (req.error) {
+        //send response to client
+        response.error = true;
+        response.status = 400;
+        response.errors = null;
+        response.memberMessage = req.error;
+        response.data = null;
+        return SendResponse(res);
+      } else if (!req.fileName) {
+        //send response to client
+        response.error = true;
+        response.status = 400;
+        response.errors = null;
+        response.memberMessage = "Media file is missing.";
+        response.data = null;
+        return SendResponse(res);
+      } else {
+        //send response to client
+        response.error = false;
+        response.status = 200;
+        response.errors = null;
+        response.data = `/api/media/${req.fileName}`;
+        response.memberMessage = "Your media file uploaded successfully.";
+        return SendResponse(res);
+      }
+    }
+  });
+};
+
+/*-----  End of uploadMedia  ------*/
