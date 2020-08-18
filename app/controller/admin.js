@@ -2,7 +2,7 @@ var cryptography = require("../libs/cryptography");
 var mongoose = require("mongoose");
 var jwt = require("jsonwebtoken");
 var session = require("../libs/session");
-var Member = mongoose.model("member");
+var StaffMember = mongoose.model("staff-member");
 var Dealer = mongoose.model("dealer");
 var Session = mongoose.model("session");
 var config = require("../../config/config");
@@ -16,14 +16,14 @@ console.log(
 );
 
 Dealer.findOne({
-  contactNumber: process.env.DEFAULT_MEMBER_CONTACT
+  contactNumber: process.env.DEFAULT_MEMBER_CONTACT,
 }).exec((err, dealer) => {
   if (!err && !dealer) {
     var newDealer = new Dealer({
       name: "Super Admin",
       contactNumber: process.env.DEFAULT_MEMBER_CONTACT,
-      dealerCode: process.env.DEFAULT_DEALER_CODE.toString(),
-      email: process.env.DEFAULT_MEMBER
+      // dealerCode: process.env.DEFAULT_DEALER_CODE.toString(),
+      email: process.env.DEFAULT_MEMBER,
     }).save(function(err, result) {
       console.log(
         "process.env.DEFAULT_MEMBER_CONTACT",
@@ -31,23 +31,23 @@ Dealer.findOne({
       );
 
       if (err) {
-        console.log("error while creating default member ", err);
+        console.log("error while creating default staffMember ", err);
       } else {
         console.log("-----------newDealer---", { newDealer });
         console.log("-----------admin---", { result });
-        Member.findOne({
-          email: process.env.DEFAULT_MEMBER
-        }).exec((err, member) => {
-          console.log("-----------admin---", { member });
-          if (!err && !member) {
-            new Member({
+        StaffMember.findOne({
+          email: process.env.DEFAULT_MEMBER,
+        }).exec((err, staffMember) => {
+          console.log("-----------admin---", { staffMember });
+          if (!err && !staffMember) {
+            new StaffMember({
               name: "Super Admin",
               email: process.env.DEFAULT_MEMBER,
-              memberType: 1,
+              accessLevel: 1,
               dealerId: result._id,
-              password: cryptography.encrypt(result.dealerCode)
-            }).save(err =>
-              console.log("error while creating default member ", err)
+              password: cryptography.encrypt(process.env.DEFAULT_PASSWORD),
+            }).save((err) =>
+              console.log("error while creating default staffMember ", err)
             );
           }
         });
@@ -62,7 +62,7 @@ console.log(cryptography.decrypt("28bef68237637b77"));
    error : true / false 
    code : contains any error code
    data : the object or array for data
-   memberMessage : the message for member, if any.
+   memberMessage : the message for staffMember, if any.
  */
 
 var response = {
@@ -70,7 +70,7 @@ var response = {
   status: 200,
   data: null,
   memberMessage: "",
-  errors: null
+  errors: null,
 };
 
 var NullResponseValue = function() {
@@ -79,7 +79,7 @@ var NullResponseValue = function() {
     status: 200,
     data: null,
     memberMessage: "",
-    errors: null
+    errors: null,
   };
   return true;
 };
@@ -127,11 +127,11 @@ methods.adminLogin = function(req, res) {
     console.log("AESKey", AESKey);
     // req.body.password = aesWrapper.decrypt(AESKey, req.body.password);
     console.log("body", req.body);
-    Member.findOne({
-      $or: [{ email: req.body.email }, { contactNumber: req.body.email }]
+    StaffMember.findOne({
+      $or: [{ email: req.body.email }, { contactNumber: req.body.email }],
     })
       .populate("dealerId")
-      .exec(function(err, member) {
+      .exec(function(err, staffMember) {
         if (err) {
           //send response to client
           response.error = true;
@@ -140,7 +140,7 @@ methods.adminLogin = function(req, res) {
           response.data = null;
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
-        } else if (!member) {
+        } else if (!staffMember) {
           //send response to client
           response.error = true;
           response.status = 400;
@@ -149,38 +149,40 @@ methods.adminLogin = function(req, res) {
           response.memberMessage = "Member doesn't exists.";
           return SendResponse(res);
         } else {
-          console.log(cryptography.decrypt(member.password));
-          if (member.password !== cryptography.encrypt(req.body.password)) {
+          console.log(cryptography.decrypt(staffMember.password));
+          if (
+            staffMember.password !== cryptography.encrypt(req.body.password)
+          ) {
             //send response to client
             response.error = true;
             response.status = 400;
             response.errors = null;
             response.data = null;
-            response.memberMessage = "member password is incorrect.";
+            response.memberMessage = "staffMember password is incorrect.";
             return SendResponse(res);
           } else {
             var token = jwt.sign(
               {
-                email: req.body.email
+                email: req.body.email,
               },
               config.sessionSecret,
               {
-                expiresIn: 60 * 120
+                expiresIn: 60 * 120,
               }
             );
 
             Session.findOneAndUpdate(
               {
-                memberId: member._id
+                staffMemberId: staffMember._id,
               },
               {
                 authToken: token,
-                createdAt: new Date()
+                createdAt: new Date(),
               },
               {
-                upsert: true
+                upsert: true,
               }
-            ).exec(err => {
+            ).exec((err) => {
               if (err) {
                 //send response to client
                 response.error = true;
@@ -196,8 +198,8 @@ methods.adminLogin = function(req, res) {
                 response.errors = null;
                 response.memberMessage = "You are logged in successfully.";
                 response.data = {
-                  member: member,
-                  authToken: token
+                  staffMember: staffMember,
+                  authToken: token,
                 };
                 return SendResponse(res);
               }
@@ -231,10 +233,10 @@ methods.createDealer = (req, res) => {
     //Database functions here
     req.body.dealerCode = randomstring.generate({
       length: 4,
-      charset: "0123456789"
+      charset: "0123456789",
     });
     Dealer.findOne({
-      contactNumber: req.body.contactNumber
+      contactNumber: req.body.contactNumber,
     }).exec((err, dealer) => {
       if (err) {
         //send response to client
@@ -254,9 +256,9 @@ methods.createDealer = (req, res) => {
           "Dealer with same contact number already exists.";
         return SendResponse(res);
       } else {
-        Member.findOne({
-          contactNumber: req.body.contactNumber
-        }).exec((err, member) => {
+        StaffMember.findOne({
+          contactNumber: req.body.contactNumber,
+        }).exec((err, staffMember) => {
           if (err) {
             //send response to client
             response.error = true;
@@ -265,7 +267,7 @@ methods.createDealer = (req, res) => {
             response.data = null;
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
-          } else if (member) {
+          } else if (staffMember) {
             //send response to client
             response.error = true;
             response.status = 400;
@@ -275,9 +277,9 @@ methods.createDealer = (req, res) => {
             return SendResponse(res);
           } else {
             var dealer = new Dealer({
-              ...req.body
+              ...req.body,
             });
-            dealer.save(err => {
+            dealer.save((err) => {
               if (err) {
                 //send response to client
                 response.error = true;
@@ -287,16 +289,16 @@ methods.createDealer = (req, res) => {
                 response.memberMessage = "Some server error has occurred.";
                 return SendResponse(res);
               } else {
-                member = new Member({
+                staffMember = new StaffMember({
                   name: req.body.name,
                   email: req.body.email.toLowerCase(),
                   contactNumber: req.body.contactNumber,
                   password: cryptography.encrypt(req.body.dealerCode),
                   dealerId: dealer._id,
-                  memberType: 2
+                  accessLevel: 2,
                 });
 
-                member.save(err => {
+                staffMember.save((err) => {
                   if (err) {
                     //send response to client
                     response.error = true;
@@ -335,7 +337,7 @@ methods.getDealersList = (req, res) => {
 
   Dealer.find({}, { dealerCode: 1, _id: 1, name: 1 })
     .sort({
-      _id: 1
+      _id: 1,
     })
     .lean()
     .exec((err, dealers) => {
@@ -374,16 +376,16 @@ methods.getDealers = async (req, res) => {
         {
           name: {
             $regex: ".*" + req.query.searchText + ".*",
-            $options: "i"
-          }
+            $options: "i",
+          },
         },
         {
           contactNumber: {
             $regex: ".*" + req.query.searchText + ".*",
-            $options: "i"
-          }
-        }
-      ]
+            $options: "i",
+          },
+        },
+      ],
     });
   }
   if (req.query.startDate && req.query.endDate) {
@@ -400,8 +402,8 @@ methods.getDealers = async (req, res) => {
     query["$and"].push({
       createdAt: {
         $gte: createdAtGTE,
-        $lte: createdAtLTE
-      }
+        $lte: createdAtLTE,
+      },
     });
   }
   if (query["$and"] && query["$and"].length == 0) {
@@ -411,9 +413,9 @@ methods.getDealers = async (req, res) => {
   var limit = req.query.limit ? parseInt(req.query.limit) : 10;
   var page = req.query.page ? parseInt(req.query.page) : 0;
   Dealer.find(query)
-    .populate("memberId")
+    .populate("staffMemberId")
     .sort({
-      createdAt: -1
+      createdAt: -1,
     })
     .limit(limit)
     .skip(page * limit)
@@ -445,9 +447,9 @@ methods.getDealers = async (req, res) => {
                 const dealerId = dealer._id;
                 console.log({ dealer });
                 console.log({ dealerId });
-                const totalMember = await Member.find({
+                const totalMember = await StaffMember.find({
                   dealerId: dealerId,
-                  memberType: 3
+                  accessLevel: 3,
                 });
                 console.log({ totalMember });
                 dealer["totalMember"] = totalMember;
@@ -501,7 +503,7 @@ methods.updateDealer = (req, res) => {
   } else {
     //Database functions here
     Dealer.findOne({
-      _id: req.body.dealerId
+      _id: req.body.dealerId,
     }).exec((err, dealer) => {
       if (err) {
         //send response to client
@@ -522,9 +524,9 @@ methods.updateDealer = (req, res) => {
       } else {
         Dealer.findOne({
           _id: {
-            $ne: dealer._id
+            $ne: dealer._id,
           },
-          contactNumber: req.body.contactNumber
+          contactNumber: req.body.contactNumber,
         }).exec((err, existingOrg) => {
           if (err) {
             //send response to client
@@ -549,7 +551,7 @@ methods.updateDealer = (req, res) => {
             dealer.address = req.body.address;
             dealer.email = req.body.email;
             dealer.contactNumber = req.body.contactNumber;
-            dealer.save(err => {
+            dealer.save((err) => {
               if (err) {
                 //send response to client
                 response.error = true;

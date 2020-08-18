@@ -2,95 +2,40 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
-var member = new Schema({
+var Member = new Schema({
   name: {
     type: String,
-    default: ""
-  },
-  deviceId: {
-    type: String,
-  },
-  imeiNumber: {
-    type: String,
-    default: ""
-    // index: {
-    //   unique: true
-    // }
-  }, 
-  avatar: {
-    type: String,
-    default: "/api/media/default-member.png"
-  }, 
-  email: {
-    type: String,
-    default: ""
-    // index: {
-    //   unique: true
-    // }
+    default: "",
   },
   contactNumber: {
     type: String,
-    // default: ""
-    index: {
-      unique: true
-    }
-  }, 
-  password: {
+    default: "",
+  },
+  email: {
     type: String,
-    default: ""
+    default: "",
   },
-  dealerId: {
-    type: ObjectId,
-    default: null,
-    ref: "dealer"
+  address: {
+    type: String,
+    default: "",
   },
-  memberType: {
-    type: Number,
-    default: 1, //super admin, dealer, agent
-    enum: [1, 2,3]
+  zipCode: {
+    type: String,
+    default: "",
   },
-  isSubscribe: {
-    type: Number,
-    default: 0, //unsubscribe
-    enum: [0, 1]
+  country: {
+    type: String,
+    default: "",
   },
   active: {
-    type: Number,
-    default: 1, //active
-    enum: [0, 1]
-  },
-  appVersion: {
-    type: String,
-    default: ""
-  }, 
-  createdAt: {
-    type: Date,
-    default: Date.now
-  } ,
-  expiredAt: {
-    type: Date,
-    default: ""
-  },
-  subscribedAt: {
-    type: Date,
-    default: ""
-  }
-} );
-
-var session = new Schema({
-  memberId: {
-    type: ObjectId,
-    default: null,
-    ref: "member"
+    type: Boolean,
+    default: true, //active
+    enum: [true, false],
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
-  authToken: {
-    type: String
-  }
 });
 
-mongoose.model("member", member);
-mongoose.model("session", session);
+mongoose.model("member", Member);

@@ -1,8 +1,8 @@
 var mongoose = require("mongoose");
 var jwt = require("jsonwebtoken");
 var session = require("../libs/session");
-var Member = mongoose.model("member");
-var Dealer = mongoose.model("dealer");
+var StaffMember = mongoose.model("staff-member");
+// var Role = mongoose.model("role");
 var Session = mongoose.model("session");
 var config = require("../../config/config");
 var demoMember = require("../data/demoMembers");
@@ -10,29 +10,12 @@ var cryptography = require("../libs/cryptography.js");
 const aesWrapper = require("../libs/aes-wrapper");
 const moment = require("moment");
 
-demoMember.map(data => {
-  Member.findOne({
-    contactNumber: data.contactNumber
-  }).exec((err, member) => {
-    if (!err && !member) {
-      console.log("User", data);
-      new Member({
-        name: data.name,
-        contactNumber: data.contactNumber,
-        imeiNumber: data.imeiNumber,
-        memberType: data.memberType,
-        deviceId: data.deviceId,
-        password: cryptography.encrypt(data.contactNumber)
-      }).save(err => console.log("error while creating default user ", err));
-    }
-  });
-});
 var response = {
   error: false,
   status: 200,
   data: null,
   memberMessage: "",
-  errors: null
+  errors: null,
 };
 
 var NullResponseValue = function() {
@@ -41,7 +24,7 @@ var NullResponseValue = function() {
     status: 200,
     data: null,
     memberMessage: "",
-    errors: null
+    errors: null,
   };
   return true;
 };
@@ -68,26 +51,33 @@ module.exports.controller = function(router) {
     response.status = 200;
     response.errors = null;
     response.memberMessage = "success";
-    response.data = { member: req.member };
+    response.data = { staffMember: req.staffMember };
     return SendResponse(res);
   });
   router
     .route("/members")
     .get(session.checkToken, methods.getMembers)
-    .delete(session.checkToken, methods.deactivateMemberId)
+    .delete(session.checkToken, methods.deactivateMemberId);
+  router
+    .route("/staffMember/profile")
     .put(session.checkToken, methods.updateMember);
+  // router
+  //   .route("/roles")
+  //   .get(session.checkToken, methods.getRoles)
+  //   .put(session.checkToken, methods.updateRole)
+  //   .post(session.checkToken, methods.createRole);
 };
 /*===============================
- ***   new member signup api  ***
+ ***   new staffMember signup api  ***
  =================================*/
 
 methods.memberSignup = function(req, res) {
   //Check for POST request errors.
-  // req.checkBody("memberType", "memberType code is required.").notEmpty();
+  // req.checkBody("accessLevel", "accessLevel code is required.").notEmpty();
   req.checkBody("name", "fullName code is required.").notEmpty();
   req.checkBody("contactNumber", "contactNumber code is required.").notEmpty();
   req.checkBody("imeiNumber", "imeiNumber code is required.").notEmpty();
-  // req.checkBody("dealerCode", "dealerCode code is required.").notEmpty();
+  // req.checkBody("organizationCode", "organizationCode code is required.").notEmpty();
   var errors = req.validationErrors(true);
   if (errors) {
     response.error = true;
@@ -97,13 +87,13 @@ methods.memberSignup = function(req, res) {
     return SendResponse(res);
   } else {
     //Database functions here
-    req.body.memberType = 3;
-    Member.findOne(
+    req.body.accessLevel = 3;
+    StaffMember.findOne(
       {
-        memberType: { $in: [req.body.memberType] },
-        contactNumber: req.body.contactNumber
+        accessLevel: { $in: [req.body.accessLevel] },
+        contactNumber: req.body.contactNumber,
       },
-      (err, member) => {
+      (err, staffMember) => {
         if (err) {
           //send response to client
           response.error = true;
@@ -112,7 +102,7 @@ methods.memberSignup = function(req, res) {
           response.memberMessage = "Some server error has occurred.";
           response.data = null;
           return SendResponse(res);
-        } else if (member) {
+        } else if (staffMember) {
           //send response to client
           response.error = true;
           response.status = 400;
@@ -121,41 +111,46 @@ methods.memberSignup = function(req, res) {
           response.data = null;
           return SendResponse(res);
         } else {
-          var dealerCode = req.body.dealerCode
-            ? req.body.dealerCode
-            : process.env.DEFAULT_DEALER_CODE;
-
-          Dealer.findOne(
-            {
-              dealerCode: dealerCode
-            },
-            (err, dealer) => {
-              if (err) {
-                //send response to client
-                response.error = true;
-                response.status = 500;
-                response.errors = err;
-                response.memberMessage = "Some server error has occurred.";
-                response.data = null;
-                return SendResponse(res);
-              } else if (!dealer) {
-                //send response to client
-                response.error = true;
-                response.status = 400;
-                response.errors = null;
-                response.memberMessage = "Contact number already exists.";
-                response.data = null;
-                return SendResponse(res);
-              } else {
-                let member = new Member({
+          let staffMember = new StaffMember({
+            contactNumber: req.body.contactNumber,
+            imeiNumber: req.body.imeiNumber,
+            // organizationId: organization._id,
+            password: cryptography.encrypt(req.body.contactNumber),
+            name: req.body.name,
+            accessLevel: req.body.accessLevel,
+          });
+          staffMember.save((err) => {
+            if (err) {
+              //send response to client
+              response.error = true;
+              response.status = 500;
+              response.errors = err;
+              response.memberMessage = "Some server error has occurred.";
+              response.data = null;
+              return SendResponse(res);
+            } else {
+              var token = jwt.sign(
+                {
                   contactNumber: req.body.contactNumber,
-                  imeiNumber: req.body.imeiNumber,
-                  dealerId: dealer._id,
-                  password: cryptography.encrypt(req.body.contactNumber),
-                  name: req.body.name,
-                  memberType: req.body.memberType
-                });
-                member.save(err => {
+                },
+                config.sessionSecret,
+                {
+                  expiresIn: 60 * 120,
+                }
+              );
+
+              Session.findOneAndUpdate(
+                {
+                  staffMemberId: staffMember._id,
+                },
+                {
+                  authToken: token,
+                  createdAt: new Date(),
+                },
+                {
+                  upsert: true,
+                },
+                (err) => {
                   if (err) {
                     //send response to client
                     response.error = true;
@@ -165,57 +160,21 @@ methods.memberSignup = function(req, res) {
                     response.data = null;
                     return SendResponse(res);
                   } else {
-                    var token = jwt.sign(
-                      {
-                        contactNumber: req.body.contactNumber
-                      },
-                      config.sessionSecret,
-                      {
-                        expiresIn: 60 * 120
-                      }
-                    );
-
-                    Session.findOneAndUpdate(
-                      {
-                        memberId: member._id
-                      },
-                      {
-                        authToken: token,
-                        createdAt: new Date()
-                      },
-                      {
-                        upsert: true
-                      },
-                      err => {
-                        if (err) {
-                          //send response to client
-                          response.error = true;
-                          response.status = 500;
-                          response.errors = err;
-                          response.memberMessage =
-                            "Some server error has occurred.";
-                          response.data = null;
-                          return SendResponse(res);
-                        } else {
-                          //send response to client
-                          response.error = false;
-                          response.status = 200;
-                          response.errors = null;
-                          response.memberMessage =
-                            "You are sign in successfully.";
-                          response.data = {
-                            member: member,
-                            authToken: token
-                          };
-                          return SendResponse(res);
-                        }
-                      }
-                    );
+                    //send response to client
+                    response.error = false;
+                    response.status = 200;
+                    response.errors = null;
+                    response.memberMessage = "You are sign in successfully.";
+                    response.data = {
+                      staffMember: staffMember,
+                      authToken: token,
+                    };
+                    return SendResponse(res);
                   }
-                });
-              }
+                }
+              );
             }
-          );
+          });
         }
       }
     );
@@ -225,7 +184,7 @@ methods.memberSignup = function(req, res) {
 /*-----  End of memberSignup  ------*/
 
 /*===========================
- ***   member login api  ***
+ ***   staffMember login api  ***
  =============================*/
 
 methods.memberLogin = (req, res) => {
@@ -241,9 +200,9 @@ methods.memberLogin = (req, res) => {
     return SendResponse(res, 400);
   } else {
     //Database functions here
-    Member.findOne({
-      imeiNumber: req.body.imeiNumber // imeiNumber
-    }).exec((err, member) => {
+    StaffMember.findOne({
+      imeiNumber: req.body.imeiNumber, // imeiNumber
+    }).exec((err, staffMember) => {
       if (err) {
         //send response to client
         response.error = true;
@@ -252,47 +211,49 @@ methods.memberLogin = (req, res) => {
         response.data = null;
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
-      } else if (!member) {
+      } else if (!staffMember) {
         //send response to client
         response.error = true;
         response.status = 400;
         response.errors = null;
         response.data = null;
-        response.memberMessage = "member imei doesn't exists.";
+        response.memberMessage = "staffMember imei doesn't exists.";
         return SendResponse(res);
       } else {
-        console.log(cryptography.decrypt(member.contactNumber));
-        if (member.password !== cryptography.encrypt(req.body.contactNumber)) {
+        console.log(cryptography.decrypt(staffMember.contactNumber));
+        if (
+          staffMember.password !== cryptography.encrypt(req.body.contactNumber)
+        ) {
           //send response to client
           response.error = true;
           response.status = 400;
           response.errors = null;
           response.data = null;
-          response.memberMessage = "member contact number is incorrect.";
+          response.memberMessage = "staffMember contact number is incorrect.";
           return SendResponse(res);
         } else {
           var token = jwt.sign(
             {
-              contactNumber: req.body.contactNumber
+              contactNumber: req.body.contactNumber,
             },
             config.sessionSecret,
             {
-              expiresIn: 60 * 120
+              expiresIn: 60 * 120,
             }
           );
 
           Session.findOneAndUpdate(
             {
-              memberId: member._id
+              staffMemberId: staffMember._id,
             },
             {
               authToken: token,
-              createdAt: new Date()
+              createdAt: new Date(),
             },
             {
-              upsert: true
+              upsert: true,
             }
-          ).exec(err => {
+          ).exec((err) => {
             if (err) {
               //send response to client
               response.error = true;
@@ -308,8 +269,8 @@ methods.memberLogin = (req, res) => {
               response.errors = null;
               response.memberMessage = "You are logged in successfully.";
               response.data = {
-                member: member,
-                authToken: token
+                staffMember: staffMember,
+                authToken: token,
               };
               return SendResponse(res);
             }
@@ -327,18 +288,18 @@ methods.memberLogin = (req, res) => {
 =======================================*/
 
 methods.getMembers = (req, res) => {
-  // Member.find({ memberType: 3 }, { _id: 1, name: 1, contactNumber: 1, imeiNumber: 1, createdAt: 1, isSubscribe: 1, memberType: 1, dealerId: 1, avatar: 1 })
+  // StaffMember.find({ accessLevel: 3 }, { _id: 1, name: 1, contactNumber: 1, imeiNumber: 1, createdAt: 1, isSubscribe: 1, accessLevel: 1, organizationId: 1, avatar: 1 })
   var query = {
-    memberType: 3,
-    active: req.query.memberType == "deactivated" ? 0 : 1
+    accessLevel: 3,
+    active: req.query.accessLevel == "deactivated" ? 0 : 1,
   };
   query["$and"] = [];
-  console.log(req.member);
-  if (req.member && req.member.memberType == 2) {
+  console.log(req.staffMember);
+  if (req.staffMember && req.staffMember.accessLevel == 2) {
     query["$and"].push({
-      dealerId: {
-        $eq: req.member.dealerId
-      }
+      organizationId: {
+        $eq: req.staffMember.organizationId,
+      },
     });
   }
   if (req.query.searchText && req.query.searchText !== "") {
@@ -347,16 +308,16 @@ methods.getMembers = (req, res) => {
         {
           name: {
             $regex: ".*" + req.query.searchText + ".*",
-            $options: "i"
-          }
+            $options: "i",
+          },
         },
         {
           contactNumber: {
             $regex: ".*" + req.query.searchText + ".*",
-            $options: "i"
-          }
-        }
-      ]
+            $options: "i",
+          },
+        },
+      ],
     });
   }
   if (req.query.startDate && req.query.endDate) {
@@ -373,24 +334,24 @@ methods.getMembers = (req, res) => {
     query["$and"].push({
       createdAt: {
         $gte: createdAtGTE,
-        $lte: createdAtLTE
-      }
+        $lte: createdAtLTE,
+      },
     });
   }
   //deactivated
   if (
-    req.query.memberType &&
-    (req.query.memberType != "all" ||
-      req.query.memberType == "subscribed" ||
-      req.query.memberType == "unsubscribed")
+    req.query.accessLevel &&
+    (req.query.accessLevel != "all" ||
+      req.query.accessLevel == "subscribed" ||
+      req.query.accessLevel == "unsubscribed")
   ) {
     query["$and"].push({
       isSubscribe: {
-        $eq: req.query.memberType == "subscribed" ? 1 : 0
-      }
+        $eq: req.query.accessLevel == "subscribed" ? 1 : 0,
+      },
     });
   }
-  if (req.query.memberType == "renewal") {
+  if (req.query.accessLevel == "renewal") {
     let expiredAtGTE = new Date(
       moment()
         .utc("0530")
@@ -398,8 +359,8 @@ methods.getMembers = (req, res) => {
     );
     query["$and"].push({
       expiredAt: {
-        $gte: expiredAtGTE
-      }
+        $gte: expiredAtGTE,
+      },
     });
   }
   if (query["$and"] && query["$and"].length == 0) {
@@ -407,10 +368,10 @@ methods.getMembers = (req, res) => {
   }
   var limit = req.query.limit ? parseInt(req.query.limit) : 10;
   var page = req.query.page ? parseInt(req.query.page) : 0;
-  Member.find(query, { password: 0, __v: 0 })
-    .populate("dealerId")
+  StaffMember.find(query, { password: 0, __v: 0 })
+    .populate("organizationId")
     .sort({
-      createdAt: -1
+      createdAt: -1,
     })
     .limit(limit)
     .skip(page * limit)
@@ -425,7 +386,7 @@ methods.getMembers = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else {
-        Member.count(query, async function(err, totalRecords) {
+        StaffMember.count(query, async function(err, totalRecords) {
           if (err) {
             //send response to client
             response.error = true;
@@ -452,16 +413,16 @@ methods.getMembers = (req, res) => {
 /*-----  End of getMembers  ------*/
 
 /*========================================
-***   update existnig member  ***
+***   update existnig staffMember  ***
 ==========================================*/
 
 methods.updateMember = (req, res) => {
-  req.checkBody("memberId", "memberId cannot be empty.").notEmpty();
+  // req.checkBody("staffMemberId", "staffMemberId cannot be empty.").notEmpty();
   req.checkBody("name", "name cannot be empty.").notEmpty();
   req.checkBody("contactNumber", "contactNumber cannot be empty.").notEmpty();
   // req.checkBody("email", "email cannot be empty.").notEmpty();
-  req.checkBody("dealerId", "dealerId cannot be empty.").notEmpty();
-  req.checkBody("active", "active cannot be empty.").notEmpty();
+  // req.checkBody("organizationId", "organizationId cannot be empty.").notEmpty();
+  // req.checkBody("active", "active cannot be empty.").notEmpty();
   var errors = req.validationErrors(true);
   if (errors) {
     response.error = true;
@@ -471,9 +432,9 @@ methods.updateMember = (req, res) => {
     return SendResponse(res, 400);
   } else {
     //Database functions here
-    Member.findOne({
-      _id: req.body.memberId
-    }).exec((err, member) => {
+    StaffMember.findOne({
+      _id: req.staffMember._id,
+    }).exec((err, staffMember) => {
       if (err) {
         //send response to client
         response.error = true;
@@ -482,20 +443,20 @@ methods.updateMember = (req, res) => {
         response.data = null;
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
-      } else if (!member) {
+      } else if (!staffMember) {
         //send response to client
         response.error = true;
         response.status = 400;
         response.errors = null;
         response.data = null;
-        response.memberMessage = "member not found.";
+        response.memberMessage = "staffMember not found.";
         return SendResponse(res);
       } else {
-        Member.findOne({
+        StaffMember.findOne({
           _id: {
-            $ne: member._id
+            $ne: staffMember._id,
           },
-          contactNumber: req.body.contactNumber
+          contactNumber: req.body.contactNumber,
         }).exec((err, existingMember) => {
           if (err) {
             //send response to client
@@ -512,14 +473,14 @@ methods.updateMember = (req, res) => {
             response.errors = null;
             response.data = null;
             response.memberMessage =
-              "Member with same contact number already exists.";
+              "StaffMember with same contact number already exists.";
             return SendResponse(res);
           } else {
-            member.name = req.body.name;
-            member.active = req.body.active;
-            member.dealerId = req.body.dealerId;
-            member.contactNumber = req.body.contactNumber;
-            member.save(err => {
+            staffMember.name = req.body.name;
+            staffMember.active = req.body.active || staffMember.active;
+            // staffMember.organizationId = req.body.organizationId;
+            staffMember.contactNumber = req.body.contactNumber;
+            staffMember.save((err) => {
               if (err) {
                 //send response to client
                 response.error = true;
@@ -533,8 +494,9 @@ methods.updateMember = (req, res) => {
                 response.error = false;
                 response.status = 200;
                 response.errors = null;
-                response.data = member;
-                response.memberMessage = "member has updated successfully.";
+                response.data = staffMember;
+                response.memberMessage =
+                  "staffMember has updated successfully.";
                 return SendResponse(res);
               }
             });
@@ -552,7 +514,7 @@ methods.updateMember = (req, res) => {
  ======================================*/
 methods.deactivateMemberId = function(req, res) {
   //Check for POST request errors.
-  req.checkBody("memberId", "memberId cannot be empty.").notEmpty();
+  req.checkBody("staffMemberId", "staffMemberId cannot be empty.").notEmpty();
   var errors = req.validationErrors(true);
   if (errors) {
     response.error = true;
@@ -561,27 +523,29 @@ methods.deactivateMemberId = function(req, res) {
     response.errors = errors;
     return SendResponse(res, 400);
   } else {
-    Member.findOneAndUpdate({ _id: req.body.memberId }, { active: 0 }, function(
-      err
-    ) {
-      if (err) {
-        //send response to client
-        response.error = true;
-        response.status = 500;
-        response.errors = err;
-        response.memberMessage = "server errors.";
-        response.data = null;
-        return SendResponse(res);
-      } else {
-        //send response to client
-        response.error = false;
-        response.status = 200;
-        response.errors = null;
-        response.memberMessage = "Deactivate success";
-        response.data = null;
-        return SendResponse(res);
+    StaffMember.findOneAndUpdate(
+      { _id: req.body.staffMemberId },
+      { active: 0 },
+      function(err) {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.memberMessage = "server errors.";
+          response.data = null;
+          return SendResponse(res);
+        } else {
+          //send response to client
+          response.error = false;
+          response.status = 200;
+          response.errors = null;
+          response.memberMessage = "Deactivate success";
+          response.data = null;
+          return SendResponse(res);
+        }
       }
-    });
+    );
   }
 };
 /*-----  End of deactivateMemberId  ------*/
@@ -598,16 +562,16 @@ methods.getScanedEmail = function(req, res) {
         {
           from_address: {
             $regex: ".*" + req.query.searchText + ".*",
-            $options: "i"
-          }
+            $options: "i",
+          },
         },
         {
           subject: {
             $regex: ".*" + req.query.searchText + ".*",
-            $options: "i"
-          }
-        }
-      ]
+            $options: "i",
+          },
+        },
+      ],
     });
   }
   if (req.query.startDate && req.query.endDate) {
@@ -616,8 +580,8 @@ methods.getScanedEmail = function(req, res) {
     query["$and"].push({
       createdAt: {
         $gte: createdAtGTE,
-        $lte: createdAtLTE
-      }
+        $lte: createdAtLTE,
+      },
     });
   }
   if (query["$and"] && query["$and"].length == 0) {

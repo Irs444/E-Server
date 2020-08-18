@@ -11,28 +11,29 @@ const rsaWrapper = require("./app/libs/rsa-wrapper");
 rsaWrapper.initLoadServerKeys(__dirname);
 rsaWrapper.serverExampleEncrypt();
 
+global.mediaProfilePath = __dirname + "/media/profileImages";
 global.mediaPath = __dirname + "/media";
-global.uploadPath = __dirname + "/uploads"; 
+global.uploadPath = __dirname + "/uploads";
 
 global.AESKey = aesWrapper.generateKey();
 
 // Connect to mongodb
-var connect = function () {
+var connect = function() {
   var options = {
     keepAlive: 1,
-    useMongoClient: true
+    useMongoClient: true,
   };
 
   mongoose.connect(config.db, options);
 };
-console.log({ connect }, "-----connect--------")
+console.log({ connect }, "-----connect--------");
 connect();
 mongoose.connection.on("error", console.log);
 mongoose.connection.on("disconnected", connect);
 
 // Bootstrap models
-fs.readdirSync(__dirname + "/app/models").forEach(function (file) {
-  console.log({file})
+fs.readdirSync(__dirname + "/app/models").forEach(function(file) {
+  console.log({ file });
   if (~file.indexOf(".js")) require(__dirname + "/app/models/" + file);
 });
 

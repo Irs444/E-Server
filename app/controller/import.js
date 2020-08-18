@@ -2,27 +2,27 @@ var cryptography = require("../libs/cryptography");
 var mongoose = require("mongoose");
 var jwt = require("jsonwebtoken");
 var session = require("../libs/session");
-var Member = mongoose.model("member");
+var StaffMember = mongoose.model("staff-member");
 var validation = require("../libs/validation");
 
 /*------- create default super admin  --------*/
-// Member.findOne({
+// StaffMember.findOne({
 //   email: process.env.DEFAULT_MEMBER
-// }).exec((err, member) => {
-//   console.log({ member })
-//   if (!err && !member) {
-//     new Member({
+// }).exec((err, staffMember) => {
+//   console.log({ staffMember })
+//   if (!err && !staffMember) {
+//     new StaffMember({
 //       fullName: "Super Admin",
 //       email: process.env.DEFAULT_MEMBER,
 //       password: cryptography.encrypt(process.env.DEFAULT_PASSWORD)
-//     }).save(err => console.log("error while creating default member ", err));
+//     }).save(err => console.log("error while creating default staffMember ", err));
 //   }
 // })
 /* the response object for API
    error : true / false 
    code : contains any error code
    data : the object or array for data
-   memberMessage : the message for member, if any.
+   memberMessage : the message for staffMember, if any.
  */
 
 var response = {
@@ -30,7 +30,7 @@ var response = {
   status: 200,
   data: null,
   memberMessage: "",
-  errors: null
+  errors: null,
 };
 
 var NullResponseValue = function() {
@@ -39,7 +39,7 @@ var NullResponseValue = function() {
     status: 200,
     data: null,
     memberMessage: "",
-    errors: null
+    errors: null,
   };
   return true;
 };
@@ -84,7 +84,7 @@ methods.importPolicyPlansList = (req, res) => {
     //send response to client
     var policy = {
       policyPlan: req.body.policyPlan,
-      policyPlanInfo: req.body.policyPlanInfo
+      policyPlanInfo: req.body.policyPlanInfo,
     };
     response.error = false;
     response.status = 200;
@@ -101,7 +101,7 @@ methods.importPolicyPlansList = (req, res) => {
 ===================================*/
 
 methods.importMembers = (req, res) => {
-  req.checkBody("members", "member cannot be empty.").notEmpty();
+  req.checkBody("members", "staffMember cannot be empty.").notEmpty();
   var errors = req.validationErrors(true);
   if (errors) {
     response.error = true;

@@ -1,5 +1,5 @@
 var mongoose = require("mongoose");
-var Member = mongoose.model("member");
+var StaffMember = mongoose.model("staff-member");
 var Session = mongoose.model("session");
 
 var jwt = require("jsonwebtoken");
@@ -10,7 +10,7 @@ var response = {
   error: false,
   status: "",
   data: null,
-  memberMessage: ""
+  memberMessage: "",
 };
 
 var NullResponseValue = function() {
@@ -19,7 +19,7 @@ var NullResponseValue = function() {
     status: "",
     data: null,
     memberMessage: "",
-    errors: null
+    errors: null,
   };
   return true;
 };
@@ -31,7 +31,7 @@ var SendResponse = function(res, status) {
 };
 
 /*********************
-	Checking for token of admin member
+	Checking for token of admin staffMember
 *********************/
 
 session.checkToken = function(req, res, next) {
@@ -54,7 +54,7 @@ session.checkToken = function(req, res, next) {
       return SendResponse(res, 401);
     } else {
       Session.findOne({
-        authToken: token
+        authToken: token,
       })
         .lean()
         .exec(function(err, session) {
@@ -63,17 +63,17 @@ session.checkToken = function(req, res, next) {
               "Your session has been expired. Please re-login.";
             return SendResponse(res, 401);
           } else {
-            Member.findOne({
-              _id: session.memberId
+            StaffMember.findOne({
+              _id: session.staffMemberId,
             })
               .populate("dealerId")
-              .exec(function(err, member) {
-                if (err || !member) {
+              .exec(function(err, staffMember) {
+                if (err || !staffMember) {
                   response.memberMessage =
                     "Your session has been expired. Please re-login";
                   return SendResponse(res, 401);
                 } else {
-                  req.member = member;
+                  req.staffMember = staffMember;
                   next();
                 }
               });
@@ -88,11 +88,11 @@ session.checkToken = function(req, res, next) {
 *********************/
 
 /****************************************
-	Checking for token of admin member
+	Checking for token of admin staffMember
 *****************************************/
 
 session.checkOrganizerToken = function(req, res, next) {
-  if (req.member && req.member.memberType == 2) {
+  if (req.staffMember && req.staffMember.accessLevel == 2) {
     next();
   } else {
     response.memberMessage = "You are not authorized.";
@@ -105,10 +105,10 @@ session.checkOrganizerToken = function(req, res, next) {
 *********************/
 
 /*****************************************
-	Checking for token of super admin member
+	Checking for token of super admin staffMember
 ******************************************/
 session.checkSuperAdmin = function(req, res, next) {
-  if (req.member && req.member.memberType == 1) {
+  if (req.staffMember && req.staffMember.accessLevel == 1) {
     next();
   } else {
     response.memberMessage = "You are not authorized.";

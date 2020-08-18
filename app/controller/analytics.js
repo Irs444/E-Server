@@ -1,7 +1,7 @@
 var cryptography = require("../libs/cryptography");
 var mongoose = require("mongoose");
 var session = require("../libs/session");
-var Member = mongoose.model("member");
+var StaffMember = mongoose.model("staff-member");
 var Dealer = mongoose.model("dealer");
 var async = require("async");
 const moment = require("moment");
@@ -10,7 +10,7 @@ const moment = require("moment");
    error : true / false 
    code : contains any error code
    data : the object or array for data
-   memberMessage : the message for member, if any.
+   memberMessage : the message for staffMember, if any.
  */
 
 var response = {
@@ -18,7 +18,7 @@ var response = {
   status: 200,
   data: null,
   memberMessage: "",
-  errors: null
+  errors: null,
 };
 
 var NullResponseValue = function() {
@@ -27,7 +27,7 @@ var NullResponseValue = function() {
     status: 200,
     data: null,
     memberMessage: "",
-    errors: null
+    errors: null,
   };
   return true;
 };
@@ -67,7 +67,7 @@ function getGraphData(dummyArray, subscribedMembers, connectedMembers) {
       data.push({
         label: connectedMembers[i]["date"],
         totalMember: connectedMembers[i]["totalCount"],
-        totalSubscribe: subscribedMembers[i]["totalSubscribe"]
+        totalSubscribe: subscribedMembers[i]["totalSubscribe"],
       });
     }
   } else if (connectedMembers.length > 0) {
@@ -75,7 +75,7 @@ function getGraphData(dummyArray, subscribedMembers, connectedMembers) {
       data.push({
         label: connectedMembers[i]["date"],
         totalMember: connectedMembers[i]["totalCount"],
-        totalSubscribe: 0
+        totalSubscribe: 0,
       });
     }
   } else {
@@ -83,7 +83,7 @@ function getGraphData(dummyArray, subscribedMembers, connectedMembers) {
       data.push({
         label: dummyArray[i],
         totalMember: 0,
-        totalSubscribe: 0
+        totalSubscribe: 0,
       });
     }
   }
@@ -118,45 +118,45 @@ methods.dashboardAnalytics = (req, res) => {
   // startDate = new Date("2013-04-08T00:00:00Z");
   // endDate = new Date("2013-04-15T00:00:00Z"); createdAt
   // console.log({ startDate, endDate });
-  // console.log(req.member);
+  // console.log(req.staffMember);
   var query = {};
-  if (req.member.memberType != 1) {
-    query = { dealerId: req.member.dealerId };
+  if (req.staffMember.accessLevel != 1) {
+    query = { dealerId: req.staffMember.dealerId };
   }
 
   async.parallel(
     {
       connectedMembers: function(callback) {
-        Member.aggregate(
+        StaffMember.aggregate(
           [
             {
               $match: {
-                $and: [{ createdAt: { $gte: startDate, $lt: endDate } }, query]
-              }
+                $and: [{ createdAt: { $gte: startDate, $lt: endDate } }, query],
+              },
             },
             {
               $project: {
-                day: { $substr: ["$createdAt", 0, 10] }
-              }
+                day: { $substr: ["$createdAt", 0, 10] },
+              },
             },
             {
               $group: {
                 _id: "$day",
-                count: { $sum: 1 }
-              }
+                count: { $sum: 1 },
+              },
             },
             { $sort: { _id: 1 } },
             {
               $project: {
                 date: "$_id",
-                totalCount: "$count"
-              }
+                totalCount: "$count",
+              },
             },
             {
               $group: {
                 _id: null,
-                stats: { $push: "$$ROOT" }
-              }
+                stats: { $push: "$$ROOT" },
+              },
             },
             {
               $project: {
@@ -167,7 +167,9 @@ methods.dashboardAnalytics = (req, res) => {
                     in: {
                       $let: {
                         vars: {
-                          dateIndex: { $indexOfArray: ["$stats._id", "$$date"] }
+                          dateIndex: {
+                            $indexOfArray: ["$stats._id", "$$date"],
+                          },
                         },
                         in: {
                           $cond: {
@@ -176,63 +178,63 @@ methods.dashboardAnalytics = (req, res) => {
                             else: {
                               _id: "$$date",
                               date: "$$date",
-                              totalCount: 0
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+                              totalCount: 0,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
             {
-              $unwind: "$stats"
+              $unwind: "$stats",
             },
             {
               $replaceRoot: {
-                newRoot: "$stats"
-              }
-            }
+                newRoot: "$stats",
+              },
+            },
           ],
           callback
         );
       },
       subscribedMembers: function(callback) {
-        Member.aggregate(
+        StaffMember.aggregate(
           [
             {
               $match: {
                 $and: [
                   { isSubscribe: { $eq: 1 } },
                   { createdAt: { $gte: startDate, $lt: endDate } },
-                  query
-                ]
-              }
+                  query,
+                ],
+              },
             },
             {
               $project: {
-                day: { $substr: ["$subscribedAt", 0, 10] }
-              }
+                day: { $substr: ["$subscribedAt", 0, 10] },
+              },
             },
             {
               $group: {
                 _id: "$day",
-                count: { $sum: 1 }
-              }
+                count: { $sum: 1 },
+              },
             },
             { $sort: { _id: 1 } },
             {
               $project: {
                 date: "$_id",
-                totalSubscribe: "$count"
-              }
+                totalSubscribe: "$count",
+              },
             },
             {
               $group: {
                 _id: null,
-                stats: { $push: "$$ROOT" }
-              }
+                stats: { $push: "$$ROOT" },
+              },
             },
             {
               $project: {
@@ -243,7 +245,9 @@ methods.dashboardAnalytics = (req, res) => {
                     in: {
                       $let: {
                         vars: {
-                          dateIndex: { $indexOfArray: ["$stats._id", "$$date"] }
+                          dateIndex: {
+                            $indexOfArray: ["$stats._id", "$$date"],
+                          },
                         },
                         in: {
                           $cond: {
@@ -252,43 +256,43 @@ methods.dashboardAnalytics = (req, res) => {
                             else: {
                               _id: "$$date",
                               date: "$$date",
-                              totalSubscribe: 0
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+                              totalSubscribe: 0,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
             {
-              $unwind: "$stats"
+              $unwind: "$stats",
             },
             {
               $replaceRoot: {
-                newRoot: "$stats"
-              }
+                newRoot: "$stats",
+              },
             },
             {
               $project: {
-                totalSubscribe: "$totalSubscribe"
-              }
-            }
+                totalSubscribe: "$totalSubscribe",
+              },
+            },
           ],
           callback
         );
       },
       totalStack: function(callback) {
-        Member.aggregate(
+        StaffMember.aggregate(
           [
-            { $match: { $and: [{ memberType: { $eq: 3 } }, query] } },
+            { $match: { $and: [{ accessLevel: { $eq: 3 } }, query] } },
             {
               $project: {
                 // day: { $substr: ["$createdAt", 0, 10] },
-                isSubscribe: "$isSubscribe"
+                isSubscribe: "$isSubscribe",
                 // isSubscribe: "$isSubscribe",
-              }
+              },
             },
             {
               $group: {
@@ -300,25 +304,25 @@ methods.dashboardAnalytics = (req, res) => {
                   $sum: {
                     $cond: [
                       {
-                        $eq: ["$isSubscribe", 1]
+                        $eq: ["$isSubscribe", 1],
                       },
                       1,
-                      0
-                    ]
-                  }
+                      0,
+                    ],
+                  },
                 },
                 unSubscribe: {
                   $sum: {
                     $cond: [
                       {
-                        $eq: ["$isSubscribe", 0]
+                        $eq: ["$isSubscribe", 0],
                       },
                       1,
-                      0
-                    ]
-                  }
-                }
-              }
+                      0,
+                    ],
+                  },
+                },
+              },
             },
             {
               $project: {
@@ -326,36 +330,36 @@ methods.dashboardAnalytics = (req, res) => {
                 totalCount: "$count",
                 // isSubscribe: "$isSubscribe",
                 totalSubscribe: "$subscribe",
-                totalUnsubscribe: "$unSubscribe"
-              }
-            }
+                totalUnsubscribe: "$unSubscribe",
+              },
+            },
           ],
           callback
         );
       },
       totalMember: function(callback) {
-        Member.count({ memberType: { $eq: 3 } }, callback);
+        StaffMember.count({ accessLevel: { $eq: 3 } }, callback);
       },
       totalMemberSubscribed: function(callback) {
-        Member.count(
-          { $and: [{ memberType: { $eq: 3 } }, { isSubscribe: { $eq: 1 } }] },
+        StaffMember.count(
+          { $and: [{ accessLevel: { $eq: 3 } }, { isSubscribe: { $eq: 1 } }] },
           callback
         );
       },
       memberCollection: function(callback) {
         Dealer.aggregate(
           [
-            // { $match: { memberType: { $eq: 3 } } },
+            // { $match: { accessLevel: { $eq: 3 } } },
             {
               $lookup: {
                 from: "members",
                 localField: "_id",
                 foreignField: "dealerId",
-                as: "member"
-              }
+                as: "staffMember",
+              },
             },
-            { $unwind: "$member" },
-            // { $match: { "$member.memberType": { $eq: 2 } } },
+            { $unwind: "$staffMember" },
+            // { $match: { "$staffMember.accessLevel": { $eq: 2 } } },
             {
               $group: {
                 _id: "$dealerCode",
@@ -365,25 +369,25 @@ methods.dashboardAnalytics = (req, res) => {
                   $sum: {
                     $cond: [
                       {
-                        $eq: ["$member.isSubscribe", 1]
+                        $eq: ["$staffMember.isSubscribe", 1],
                       },
                       1,
-                      0
-                    ]
-                  }
+                      0,
+                    ],
+                  },
                 },
                 unSubscribe: {
                   $sum: {
                     $cond: [
                       {
-                        $eq: ["$member.isSubscribe", 0]
+                        $eq: ["$staffMember.isSubscribe", 0],
                       },
                       1,
-                      0
-                    ]
-                  }
-                }
-              }
+                      0,
+                    ],
+                  },
+                },
+              },
             },
             {
               $project: {
@@ -391,10 +395,10 @@ methods.dashboardAnalytics = (req, res) => {
                 totalCount: "$count",
                 totalSubscribe: "$subscribe",
                 totalUnsubscribe: "$unSubscribe",
-                name: "$name"
-              }
+                name: "$name",
+              },
             },
-            { $sort: { totalCount: -1 } }
+            { $sort: { totalCount: -1 } },
           ],
           callback
         );
@@ -402,17 +406,17 @@ methods.dashboardAnalytics = (req, res) => {
       collectionDealer: function(callback) {
         Dealer.aggregate(
           [
-            // { $match: { memberType: { $eq: 3 } } },
+            // { $match: { accessLevel: { $eq: 3 } } },
             {
               $lookup: {
                 from: "members",
                 localField: "_id",
                 foreignField: "dealerId",
-                as: "member"
-              }
+                as: "staffMember",
+              },
             },
-            { $unwind: "$member" },
-            // { $match: { "$member.memberType": { $eq: 2 } } },
+            { $unwind: "$staffMember" },
+            // { $match: { "$staffMember.accessLevel": { $eq: 2 } } },
             {
               $group: {
                 _id: "$dealerCode",
@@ -422,25 +426,25 @@ methods.dashboardAnalytics = (req, res) => {
                   $sum: {
                     $cond: [
                       {
-                        $eq: ["$member.isSubscribe", 1]
+                        $eq: ["$staffMember.isSubscribe", 1],
                       },
                       1,
-                      0
-                    ]
-                  }
+                      0,
+                    ],
+                  },
                 },
                 unSubscribe: {
                   $sum: {
                     $cond: [
                       {
-                        $eq: ["$member.isSubscribe", 0]
+                        $eq: ["$staffMember.isSubscribe", 0],
                       },
                       1,
-                      0
-                    ]
-                  }
-                }
-              }
+                      0,
+                    ],
+                  },
+                },
+              },
             },
             {
               $project: {
@@ -448,14 +452,14 @@ methods.dashboardAnalytics = (req, res) => {
                 totalCount: "$count",
                 totalSubscribe: "$subscribe",
                 totalUnsubscribe: "$unSubscribe",
-                name: "$name"
-              }
+                name: "$name",
+              },
             },
-            { $sort: { totalSubscribe: -1 } }
+            { $sort: { totalSubscribe: -1 } },
           ],
           callback
         );
-      }
+      },
     },
     function done(err, results) {
       // console.log({ err, results });
@@ -491,7 +495,7 @@ methods.dashboardAnalytics = (req, res) => {
 };
 
 /**
- *  Member.aggregate(
+ *  StaffMember.aggregate(
         [
           // { $match: { saleDate: { $gte: startDate, $lt: endDate } } },
           {
@@ -599,16 +603,16 @@ methods.dashboardAnalytics2 = (req, res) => {
   // startDate = new Date("2013-04-08T00:00:00Z");
   // endDate = new Date("2013-04-15T00:00:00Z"); createdAt
   console.log({ startDate, endDate });
-  Member.aggregate(
+  StaffMember.aggregate(
     [
       { $match: { createdAt: { $gte: startDate, $lt: endDate } } },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
           list: { $push: "$$ROOT" },
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
       // { $match: { "createdAt": { $gte: startDate, $lt: endDate } } },
       // {
       //   $addFields: {
@@ -771,7 +775,7 @@ methods.dashboardAnalytics2 = (req, res) => {
 //           {
 //             totalQuizzes: function(callback) {
 //               QuizSession.find({
-//                 organisationId: req.member.organisationId
+//                 organisationId: req.staffMember.organisationId
 //               })
 //                 .count()
 //                 .exec(callback);
@@ -779,14 +783,14 @@ methods.dashboardAnalytics2 = (req, res) => {
 //             currentQuizzes: function(callback) {
 //               QuizSession.find({
 //                 status: "ready",
-//                 organisationId: req.member.organisationId,
+//                 organisationId: req.staffMember.organisationId,
 //                 expiredAt: { $gte: new Date() }
 //               })
 //                 .count()
 //                 .exec(callback);
 //             },
 //             players: function(callback) {
-//               membersQuiz.distinct("memberId").exec((err, result) => {
+//               membersQuiz.distinct("staffMemberId").exec((err, result) => {
 //                 if (err) {
 //                   return callback(err);
 //                 }
@@ -808,7 +812,7 @@ methods.dashboardAnalytics2 = (req, res) => {
 //             totalSize: function(callback) {
 //               QuizSession.find({
 //                 sessionType: "hosted",
-//                 organisationId: "" + req.member.organisationId
+//                 organisationId: "" + req.staffMember.organisationId
 //               })
 //                 .count()
 //                 .exec((err, results) => {
@@ -823,7 +827,7 @@ methods.dashboardAnalytics2 = (req, res) => {
 //                 {
 //                   $match: {
 //                     sessionType: "hosted",
-//                     organisationId: "" + req.member.organisationId
+//                     organisationId: "" + req.staffMember.organisationId
 //                   }
 //                 },
 //                 {
@@ -908,7 +912,7 @@ methods.dashboardAnalytics2 = (req, res) => {
 //                     result,
 //                     {
 //                       path: "organizerId",
-//                       model: "member",
+//                       model: "staffMember",
 //                       select: "fullName avatar"
 //                     },
 //                     (err, quizzes) => {

@@ -5,36 +5,36 @@ var ObjectId = Schema.ObjectId;
 var Dealer = new Schema({
   name: {
     type: String,
-    default: ""
+    default: "",
   },
-  dealerCode: {
-    type: String,
-    index: {
-      unique: true
-    }},
   contactNumber: {
     type: String,
     index: {
-      unique: true
-    }
+      unique: true,
+    },
   },
   email: {
     type: String,
-    default: ""
-  }, 
+    default: "",
+  },
   address: {
     type: String,
-    default: ""
+    default: "",
+  },
+  dealerType: {
+    type: String,
+    default: "owner", //owner
+    enum: ["owner", "partner"],
   },
   active: {
     type: Number,
     default: 1, //active
-    enum: [0, 1]
+    enum: [0, 1],
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 mongoose.model("dealer", Dealer);

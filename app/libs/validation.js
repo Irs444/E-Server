@@ -9,7 +9,7 @@ var response = {
   status: 200,
   data: null,
   memberMessage: "",
-  errors: null
+  errors: null,
 };
 
 var NullResponseValue = function() {
@@ -18,7 +18,7 @@ var NullResponseValue = function() {
     status: 200,
     data: null,
     memberMessage: "",
-    errors: null
+    errors: null,
   };
   return true;
 };
@@ -42,11 +42,11 @@ validation.checkFile = function(req, res, next) {
       if (ext != "xls" && ext != "xlsx" && ext != "csv")
         req.error = "file format not supported";
       cb(null, req.fileName);
-    }
+    },
   });
 
   var uploadfile = multer({
-    storage: storage
+    storage: storage,
   }).single("file");
 
   uploadfile(req, res, function(err) {
@@ -112,7 +112,7 @@ validation.checkFile = function(req, res, next) {
     }
   ]
          */
-        Object.keys(output).map(sheet => {
+        Object.keys(output).map((sheet) => {
           console.log({ output, sheet });
           req.sheets.push(output[sheet]);
           Policys = Policys.concat(output[sheet]);
@@ -149,13 +149,13 @@ validation.checkFile = function(req, res, next) {
             if (key != "years") {
               arrayPlanYearInfo.push({
                 durationYear: key,
-                revivalAmount: Policys[i][key]
+                revivalAmount: Policys[i][key],
               });
             }
           }
           req.body.policyPlanInfo.push({
             yearOfReturn: Policys[i]["years"],
-            planInfo: arrayPlanYearInfo
+            planInfo: arrayPlanYearInfo,
           });
         }
 
@@ -176,11 +176,11 @@ validation.checkFile = function(req, res, next) {
       if ((req.fileName.split(".").pop() || "").toLowerCase() == "csv") {
         csv()
           .fromFile(filePath)
-          .then(output => {
+          .then((output) => {
             // console.log({ output });
             validateMembers([output]);
           })
-          .catch(err => {
+          .catch((err) => {
             //send response to client
             response.error = true;
             response.status = 500;
@@ -236,12 +236,12 @@ validation.checkADMembers = function(req, res, next) {
       url: "ldap://" + req.body.domain,
       baseDN: req.body.domain
         .split(".")
-        .map(term => "dc=" + term)
+        .map((term) => "dc=" + term)
         .join(","),
       membername: req.body.membername + "@" + req.body.domain,
       password: req.body.password,
       attributes: {
-        member: [
+        staffMember: [
           "dn",
           "memberPrincipalName",
           "mobile",
@@ -254,9 +254,9 @@ validation.checkADMembers = function(req, res, next) {
           "displayName",
           ,
           "description",
-          "office"
-        ]
-      }
+          "office",
+        ],
+      },
     };
     var ad = new ActiveDirectory(config);
     var membername = req.body.membername + "@" + req.body.domain;
@@ -316,11 +316,11 @@ validation.checkFile1 = function(req, res, next) {
       if (ext != "xls" && ext != "xlsx" && ext != "csv")
         req.error = "file format not supported";
       cb(null, req.fileName);
-    }
+    },
   });
 
   var uploadfile = multer({
-    storage: storage
+    storage: storage,
   }).single("file");
 
   uploadfile(req, res, function(err) {
@@ -374,7 +374,7 @@ validation.checkFile1 = function(req, res, next) {
         req.totalMembers = 0;
         var Employees = [];
         req.body.members = [];
-        Object.keys(output).map(sheet => {
+        Object.keys(output).map((sheet) => {
           req.sheets.push(output[sheet]);
           Employees = Employees.concat(output[sheet]);
         });
@@ -390,7 +390,7 @@ validation.checkFile1 = function(req, res, next) {
             }
 
             if (
-              keys.some(key => {
+              keys.some((key) => {
                 if (Object.keys(employee).indexOf(key) < 0) {
                   return true;
                 }
@@ -451,10 +451,10 @@ validation.checkFile1 = function(req, res, next) {
       if ((req.fileName.split(".").pop() || "").toLowerCase() == "csv") {
         csv()
           .fromFile(filePath)
-          .then(output => {
+          .then((output) => {
             validateMembers([output]);
           })
-          .catch(err => {
+          .catch((err) => {
             //send response to client
             response.error = true;
             response.status = 500;
@@ -509,12 +509,12 @@ validation.checkADMembers1 = function(req, res, next) {
       url: "ldap://" + req.body.domain,
       baseDN: req.body.domain
         .split(".")
-        .map(term => "dc=" + term)
+        .map((term) => "dc=" + term)
         .join(","),
       membername: req.body.membername + "@" + req.body.domain,
       password: req.body.password,
       attributes: {
-        member: [
+        staffMember: [
           "dn",
           "memberPrincipalName",
           "mobile",
@@ -527,9 +527,9 @@ validation.checkADMembers1 = function(req, res, next) {
           "displayName",
           ,
           "description",
-          "office"
-        ]
-      }
+          "office",
+        ],
+      },
     };
     var ad = new ActiveDirectory(config);
     var membername = req.body.membername + "@" + req.body.domain;
