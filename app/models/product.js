@@ -103,7 +103,11 @@ var product = new Schema({
       },
     },
   ],
-  pdfUrl: {
+  pdfFileName: {
+    type: String,
+    default: "",
+  },
+  pdfFileUrl: {
     type: String,
     default: "",
   },

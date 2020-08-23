@@ -8,10 +8,10 @@ var Enquery = new Schema({
     default: null,
     ref: "product",
   },
-  memberId: {
+  clientId: {
     type: ObjectId,
     default: null,
-    ref: "member",
+    ref: "client",
   },
   staffMemberId: {
     type: ObjectId,
@@ -21,6 +21,14 @@ var Enquery = new Schema({
   quantity: {
     type: Number,
     default: 0,
+  },
+  contactUs: {
+    type: Boolean,
+    default: false,
+  },
+  subject: {
+    type: String,
+    default: "",
   },
   message: {
     type: String,

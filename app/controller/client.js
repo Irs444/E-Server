@@ -1,0 +1,547 @@
+var cryptography = require("../libs/cryptography");
+var mongoose = require("mongoose");
+var jwt = require("jsonwebtoken");
+var session = require("../libs/session");
+var Client = mongoose.model("client");
+var Enquery = mongoose.model("enquery");
+var Session = mongoose.model("session");
+var config = require("../../config/config");
+var randomstring = require("randomstring");
+const aesWrapper = require("../libs/aes-wrapper");
+const async = require("async");
+const moment = require("moment");
+
+/* the response object for API
+   error : true / false 
+   code : contains any error code
+   data : the object or array for data
+   memberMessage : the message for staffMember, if any.
+ */
+
+var response = {
+  error: false,
+  status: 200,
+  data: null,
+  memberMessage: "",
+  errors: null,
+};
+
+var NullResponseValue = function() {
+  response = {
+    error: false,
+    status: 200,
+    data: null,
+    memberMessage: "",
+    errors: null,
+  };
+  return true;
+};
+
+var SendResponse = function(res, status) {
+  res.status(status || 200).send(response);
+  NullResponseValue();
+  return;
+};
+
+var methods = {};
+
+/*
+ Routings/controller goes here
+ */
+module.exports.controller = function(router) {
+  router.route("/contact").post(methods.clientContactUs);
+  router
+    .route("/client")
+    .get(session.checkToken, methods.getClients)
+    .post(methods.createClient)
+    .put(session.checkToken, methods.updateClients)
+    .delete(session.checkToken, methods.deactivateClientId);
+};
+
+/*===================================
+***   create new client  ***
+=====================================*/
+
+methods.clientContactUs = (req, res) => {
+  req.checkBody("name", "name cannot be empty.").notEmpty();
+  req.checkBody("email", "email cannot be empty.").notEmpty();
+  req.checkBody("message", "message cannot be empty.").notEmpty();
+  req.checkBody("subject", "subject cannot be empty.").notEmpty();
+
+  var errors = req.validationErrors(true);
+  if (errors) {
+    response.error = true;
+    response.memberMessage = "Validation Error";
+    response.data = null;
+    response.errors = errors;
+    return SendResponse(res, 400);
+  } else {
+    //Database functions here
+    Client.findOne({
+      email: req.body.email,
+    }).exec((err, client) => {
+      if (err) {
+        //send response to client
+        response.error = true;
+        response.status = 500;
+        response.errors = err;
+        response.data = null;
+        response.memberMessage = "Some server error has occurred.";
+        return SendResponse(res);
+      } else if (client) {
+        //send response to client
+        client.name = req.body.name;
+        client.email = req.body.email;
+        client.contactNumber = req.body.contactNumber;
+        client.country = req.body.country;
+        client.save((err) => {
+          if (err) {
+            //send response to client
+            response.error = true;
+            response.status = 500;
+            response.errors = err;
+            response.data = null;
+            response.memberMessage = "Some server error has occurred.";
+            return SendResponse(res);
+          } else {
+            var enquery = new Enquery({
+              clientId: client._id,
+              contactUs: true,
+              subject: req.body.subject,
+              message: req.body.message,
+            });
+            enquery.save((err) => {
+              if (err) {
+                //send response to client
+                response.error = true;
+                response.status = 500;
+                response.errors = err;
+                response.data = null;
+                response.memberMessage = "Some server error has occurred.";
+                return SendResponse(res);
+              } else {
+                //send response to client
+                response.error = false;
+                response.status = 200;
+                response.errors = null;
+                response.data = null;
+                response.memberMessage = "Request send successfully.";
+                return SendResponse(res);
+              }
+            });
+          }
+        });
+      } else {
+        var client = new Client({
+          ...req.body,
+        });
+        client.save((err) => {
+          if (err) {
+            //send response to client
+            response.error = true;
+            response.status = 500;
+            response.errors = err;
+            response.data = null;
+            response.memberMessage = "Some server error has occurred.";
+            return SendResponse(res);
+          } else {
+            var enquery = new Enquery({
+              clientId: client._id,
+              contactUs: true,
+              subject: req.body.subject,
+              message: req.body.message,
+            });
+            enquery.save((err) => {
+              if (err) {
+                //send response to client
+                response.error = true;
+                response.status = 500;
+                response.errors = err;
+                response.data = null;
+                response.memberMessage = "Some server error has occurred.";
+                return SendResponse(res);
+              } else {
+                //send response to client
+                response.error = false;
+                response.status = 200;
+                response.errors = null;
+                response.data = null;
+                response.memberMessage = "Request send successfully.";
+                return SendResponse(res);
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+};
+
+/*-----  End of createclient  ------*/
+/*===================================
+***   create new client  ***
+=====================================*/
+
+methods.createClient = (req, res) => {
+  req.checkBody("name", "name cannot be empty.").notEmpty();
+  req.checkBody("email", "email cannot be empty.").notEmpty();
+  req.checkBody("contactNumber", "contactNumber cannot be empty.").notEmpty();
+  req.checkBody("quantity", "quantity cannot be empty.").notEmpty();
+  req.checkBody("country", "country cannot be empty.").notEmpty();
+  req.checkBody("productId", "productId cannot be empty.").notEmpty();
+
+  var errors = req.validationErrors(true);
+  if (errors) {
+    response.error = true;
+    response.memberMessage = "Validation Error";
+    response.data = null;
+    response.errors = errors;
+    return SendResponse(res, 400);
+  } else {
+    //Database functions here
+    Client.findOne({
+      email: req.body.email,
+    }).exec((err, client) => {
+      if (err) {
+        //send response to client
+        response.error = true;
+        response.status = 500;
+        response.errors = err;
+        response.data = null;
+        response.memberMessage = "Some server error has occurred.";
+        return SendResponse(res);
+      } else if (client) {
+        //send response to client
+        client.name = req.body.name;
+        client.email = req.body.email;
+        client.contactNumber = req.body.contactNumber;
+        // client.quantity = req.body.quantity;
+        client.country = req.body.country;
+        // client.productId = req.body.productId;
+        client.save((err) => {
+          if (err) {
+            //send response to client
+            response.error = true;
+            response.status = 500;
+            response.errors = err;
+            response.data = null;
+            response.memberMessage = "Some server error has occurred.";
+            return SendResponse(res);
+          } else {
+            var enquery = new Enquery({
+              clientId: client._id,
+              quantity: req.body.quantity,
+              productId: req.body.productId,
+              message: req.body.message,
+            });
+            enquery.save((err) => {
+              if (err) {
+                //send response to client
+                response.error = true;
+                response.status = 500;
+                response.errors = err;
+                response.data = null;
+                response.memberMessage = "Some server error has occurred.";
+                return SendResponse(res);
+              } else {
+                //send response to client
+                response.error = false;
+                response.status = 200;
+                response.errors = null;
+                response.data = null;
+                response.memberMessage = "Request send successfully.";
+                return SendResponse(res);
+              }
+            });
+          }
+        });
+      } else {
+        var client = new Client({
+          ...req.body,
+        });
+        client.save((err) => {
+          if (err) {
+            //send response to client
+            response.error = true;
+            response.status = 500;
+            response.errors = err;
+            response.data = null;
+            response.memberMessage = "Some server error has occurred.";
+            return SendResponse(res);
+          } else {
+            var enquery = new Enquery({
+              clientId: client._id,
+              quantity: req.body.quantity,
+              productId: req.body.productId,
+              message: req.body.message,
+            });
+            enquery.save((err) => {
+              if (err) {
+                //send response to client
+                response.error = true;
+                response.status = 500;
+                response.errors = err;
+                response.data = null;
+                response.memberMessage = "Some server error has occurred.";
+                return SendResponse(res);
+              } else {
+                //send response to client
+                response.error = false;
+                response.status = 200;
+                response.errors = null;
+                response.data = null;
+                response.memberMessage = "Request send successfully.";
+                return SendResponse(res);
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+};
+
+/*-----  End of createclient  ------*/
+
+/*=====================================
+***   get list of clients  ***
+=======================================*/
+
+methods.getClients = async (req, res) => {
+  if (req.query.clientId) {
+    Client.findOne({ _id: req.query.clientId })
+      .populate("productId")
+      .populate("adminId", "name profilePicUrl")
+      .lean()
+      .exec((err, clients) => {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.data = null;
+          response.memberMessage = "Some server error has occurred.";
+          return SendResponse(res);
+        } else {
+          //send response to client
+          response.error = false;
+          response.status = 200;
+          response.errors = null;
+          response.data = clients;
+          response.memberMessage = "Client info fetched successfully.";
+          return SendResponse(res);
+        }
+      });
+  } else {
+    var query = {
+      active: true,
+    };
+    if (req.query.clientStatus && req.query.clientStatus != "all") {
+      query.public = req.query.clientStatus === "deactivated" ? false : true;
+    }
+    query["$and"] = [];
+    if (req.query.searchText && req.query.searchText !== "") {
+      query["$and"].push({
+        $or: [
+          {
+            name: {
+              $regex: ".*" + req.query.searchText + ".*",
+              $options: "i",
+            },
+          },
+          {
+            contactNumber: {
+              $regex: ".*" + req.query.searchText + ".*",
+              $options: "i",
+            },
+          },
+        ],
+      });
+    }
+    if (req.query.startDate && req.query.endDate) {
+      let createdAtGTE = new Date(
+        moment(req.query.startDate)
+          .utc("0530")
+          .format()
+      );
+      let createdAtLTE = new Date(
+        moment(req.query.endDate)
+          .utc("0530")
+          .format()
+      );
+      query["$and"].push({
+        createdAt: {
+          $gte: createdAtGTE,
+          $lte: createdAtLTE,
+        },
+      });
+    }
+    if (query["$and"] && query["$and"].length == 0) {
+      delete query["$and"];
+    }
+    console.log({ query }, query["$and"]);
+    var limit = req.query.limit ? parseInt(req.query.limit) : 10;
+    var page = req.query.page ? parseInt(req.query.page) : 0;
+    Client.find(query)
+      .populate("createrId", "name profilePicUrl")
+      .sort({
+        createdAt: -1,
+      })
+      .limit(limit)
+      .skip(page * limit)
+      .lean()
+      .exec((err, clients) => {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.data = null;
+          response.memberMessage = "Some server error has occurred.";
+          return SendResponse(res);
+        } else {
+          Client.count(query, async function(err, totalRecords) {
+            if (err) {
+              //send response to client
+              response.error = true;
+              response.status = 500;
+              response.errors = err;
+              response.memberMessage = "Some server error has occurred.";
+              response.data = null;
+              return SendResponse(res);
+            } else {
+              //send response to client
+              response.error = false;
+              response.status = 200;
+              response.errors = null;
+              response.data = clients;
+              response.totalRecords = totalRecords;
+              response.memberMessage = "List of clients fetched successfully.";
+              return SendResponse(res);
+            }
+          });
+        }
+      });
+  }
+};
+
+/*-----  End of getclients  ------*/
+
+/*========================================
+***   update existnig client  ***
+==========================================*/
+
+methods.updateClients = (req, res) => {
+  req.checkBody("clientId", "clientId cannot be empty.").notEmpty();
+  req.checkBody("name", "name cannot be empty.").notEmpty();
+  req.checkBody("contactNumber", "contactNumber cannot be empty.").notEmpty();
+  // req.checkBody("address", "address cannot be empty.").notEmpty();
+  req.checkBody("email", "email cannot be empty.").notEmpty();
+  var errors = req.validationErrors(true);
+  if (errors) {
+    response.error = true;
+    response.memberMessage = "Validation Error";
+    response.data = null;
+    response.errors = errors;
+    return SendResponse(res, 400);
+  } else {
+    //Database functions here
+    Client.findOne({
+      _id: req.body.clientId,
+    }).exec((err, client) => {
+      if (err) {
+        //send response to client
+        response.error = true;
+        response.status = 500;
+        response.errors = err;
+        response.data = null;
+        response.memberMessage = "Some server error has occurred.";
+        return SendResponse(res);
+      } else if (!client) {
+        //send response to client
+        response.error = true;
+        response.status = 400;
+        response.errors = null;
+        response.data = null;
+        response.memberMessage = "client not found.";
+        return SendResponse(res);
+      } else {
+        Client.findOneAndUpdate(
+          {
+            _id: clientId,
+          },
+          {
+            ...req.body,
+            adminId: req.staffMember._id,
+          }
+        ).exec((err, client) => {
+          if (err) {
+            //send response to client
+            response.error = true;
+            response.status = 500;
+            response.errors = err;
+            response.data = null;
+            response.memberMessage = "Some server error has occurred.";
+            return SendResponse(res);
+          } else if (!client) {
+            //send response to client
+            response.error = true;
+            response.status = 400;
+            response.errors = null;
+            response.data = null;
+            response.memberMessage = "client not found.";
+            return SendResponse(res);
+          } else {
+            //send response to client
+            response.error = false;
+            response.status = 200;
+            response.errors = null;
+            response.data = client;
+            response.memberMessage = "client has updated successfully.";
+            return SendResponse(res);
+          }
+        });
+      }
+    });
+  }
+};
+
+/*-----  End of updateclient  ------*/
+/*====================================
+ ***   deactivate existnig Client   ***
+ ======================================*/
+methods.deactivateClientId = function(req, res) {
+  //Check for POST request errors.
+  req.checkBody("clientId", "clientId cannot be empty.").notEmpty();
+  var errors = req.validationErrors(true);
+  if (errors) {
+    response.error = true;
+    response.memberMessage = "Validation Error";
+    response.data = null;
+    response.errors = errors;
+    return SendResponse(res, 400);
+  } else {
+    Client.findOneAndUpdate({ _id: req.body.clientId }, { active: 0 }, function(
+      err
+    ) {
+      if (err) {
+        //send response to client
+        response.error = true;
+        response.status = 500;
+        response.errors = err;
+        response.memberMessage = "server errors.";
+        response.data = null;
+        return SendResponse(res);
+      } else {
+        //send response to client
+        response.error = false;
+        response.status = 200;
+        response.errors = null;
+        response.memberMessage = "Deactivate success";
+        response.data = null;
+        return SendResponse(res);
+      }
+    });
+  }
+};
+/*-----  End of deactivateClientId  ------*/

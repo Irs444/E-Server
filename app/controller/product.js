@@ -57,6 +57,7 @@ module.exports.controller = function(router) {
     .put(session.checkToken, methods.updateProduct)
     .delete(session.checkToken, methods.deactivateProductId);
   router.route("/public/products").get(methods.getProductClients);
+  router.route("/public/search").get(methods.getSearchClients);
   ///product/list
   router
     .route("/product/list")
@@ -182,9 +183,127 @@ methods.getProductsList = (req, res) => {
 ***   get list of products  ***
 =======================================*/
 
+methods.getSearchClients = async (req, res) => {
+  var query = {
+    active: true,
+  };
+  query["$and"] = [
+    {
+      "categoryId.active": true,
+    },
+    {
+      "categoryId.public": true,
+    },
+    {
+      "brandId.active": true,
+    },
+    {
+      "brandId.public": true,
+    },
+  ];
+
+  if (req.query.searchText && req.query.searchText !== "") {
+    query["$and"].push({
+      $or: [
+        {
+          name: {
+            $regex: ".*" + req.query.searchText + ".*",
+            $options: "i",
+          },
+        },
+        {
+          "brandId.name": {
+            $regex: ".*" + req.query.searchText + ".*",
+            $options: "i",
+          },
+        },
+        {
+          "categoryId.name": {
+            $regex: ".*" + req.query.searchText + ".*",
+            $options: "i",
+          },
+        },
+      ],
+    });
+  }
+  if (query["$and"] && query["$and"].length == 0) {
+    delete query["$and"];
+  }
+  console.log({ query }, query["$and"]);
+  var limit = req.query.limit ? parseInt(req.query.limit) : 10;
+  var page = req.query.page ? parseInt(req.query.page) : 0;
+
+  async.parallel(
+    {
+      products: function(callback) {
+        Product.aggregate([
+          {
+            $match: { active: true, public: true },
+          },
+          {
+            $lookup: {
+              from: "brands",
+              localField: "brandId",
+              foreignField: "_id",
+              as: "brandId",
+            },
+          },
+          { $unwind: "$brandId" },
+          {
+            $lookup: {
+              from: "categories",
+              localField: "categoryId",
+              foreignField: "_id",
+              as: "categoryId",
+            },
+          },
+          { $unwind: "$categoryId" },
+          {
+            $match: query,
+          },
+          // {
+          //   $limit: limit,
+          // },
+          // {
+          //   $skip: skip * limit,
+          // },
+        ]).exec(callback);
+      },
+      totalRecords: function(callback) {
+        if (req.query.productId) {
+          return callback(null);
+        }
+        Product.count(query).exec(callback);
+      },
+    },
+    function(err, results) {
+      if (err) {
+        //send response to client
+        response.error = true;
+        response.status = 500;
+        response.errors = err;
+        response.memberMessage = "Some server error has occurred.";
+        response.data = null;
+        return SendResponse(res);
+      } else {
+        //send response to client
+        response.error = false;
+        response.status = 200;
+        response.errors = null;
+        response.brandInfo = results.brandInfo;
+        response.categoryInfo = results.categoryInfo;
+        response.data = results.products;
+        response.totalRecords = results.totalRecords;
+        response.memberMessage = "List of products fetched successfully.";
+        return SendResponse(res);
+      }
+    }
+  );
+};
 methods.getProductClients = async (req, res) => {
   var query = {
     active: true,
+    public: true,
   };
   if (req.query.categoryUrl) {
     query.categoryUrl = req.query.categoryUrl;
@@ -334,49 +453,6 @@ methods.getProductClients = async (req, res) => {
       }
     }
   );
-
-  // Product.find(query)
-  //   .populate("approvedBy", "name profileUrl")
-  //   .populate("createrId", "name profileUrl")
-  //   .populate("brandId")
-  //   .sort({
-  //     createdAt: -1,
-  //   })
-  //   .limit(limit)
-  //   .skip(page * limit)
-  //   .lean()
-  //   .exec((err, products) => {
-  //     if (err) {
-  //       //send response to client
-  //       response.error = true;
-  //       response.status = 500;
-  //       response.errors = err;
-  //       response.data = null;
-  //       response.memberMessage = "Some server error has occurred.";
-  //       return SendResponse(res);
-  //     } else {
-  //       Product.count(query, async function(err, totalRecords) {
-  //         if (err) {
-  //           //send response to client
-  //           response.error = true;
-  //           response.status = 500;
-  //           response.errors = err;
-  //           response.memberMessage = "Some server error has occurred.";
-  //           response.data = null;
-  //           return SendResponse(res);
-  //         } else {
-  //           //send response to client
-  //           response.error = false;
-  //           response.status = 200;
-  //           response.errors = null;
-  //           response.data = products;
-  //           response.totalRecords = totalRecords;
-  //           response.memberMessage = "List of products fetched successfully.";
-  //           return SendResponse(res);
-  //         }
-  //       });
-  //     }
-  //   });
 };
 methods.getProducts = async (req, res) => {
   var query = {

@@ -63,8 +63,8 @@ module.exports.controller = function(router) {
     .route("/brand/:brandId/public")
     .put(session.checkToken, methods.updateBrandStatus);
   router
-    .route("/categorys")
-    .get(session.checkToken, methods.getCategorys)
+    .route("/categories")
+    .get(session.checkToken, methods.getCategories)
     .post(session.checkToken, methods.createCategory)
     .put(session.checkToken, methods.updateCategory)
     .delete(session.checkToken, methods.deactivateCategoryId);
@@ -243,95 +243,120 @@ methods.createBrand = (req, res) => {
 =======================================*/
 
 methods.getBrands = async (req, res) => {
-  var query = {
-    active: true,
-  };
-  if (req.query.brandStatus && req.query.brandStatus != "all") {
-    query.public = req.query.brandStatus === "deactivated" ? false : true;
-  }
-  query["$and"] = [];
-  if (req.query.searchText && req.query.searchText !== "") {
-    query["$and"].push({
-      $or: [
-        {
-          name: {
-            $regex: ".*" + req.query.searchText + ".*",
-            $options: "i",
+  if (req.query.brandId) {
+    Brand.findOne({ _id: req.query.brandId })
+      .populate("createrId", "name profilePicUrl")
+      .lean()
+      .exec((err, brands) => {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.data = null;
+          response.memberMessage = "Some server error has occurred.";
+          return SendResponse(res);
+        } else {
+          //send response to client
+          response.error = false;
+          response.status = 200;
+          response.errors = null;
+          response.data = brands;
+          response.memberMessage = "Brand info fetched successfully.";
+          return SendResponse(res);
+        }
+      });
+  } else {
+    var query = {
+      active: true,
+    };
+    if (req.query.brandStatus && req.query.brandStatus != "all") {
+      query.public = req.query.brandStatus === "deactivated" ? false : true;
+    }
+    query["$and"] = [];
+    if (req.query.searchText && req.query.searchText !== "") {
+      query["$and"].push({
+        $or: [
+          {
+            name: {
+              $regex: ".*" + req.query.searchText + ".*",
+              $options: "i",
+            },
           },
-        },
-        {
-          contactNumber: {
-            $regex: ".*" + req.query.searchText + ".*",
-            $options: "i",
+          {
+            contactNumber: {
+              $regex: ".*" + req.query.searchText + ".*",
+              $options: "i",
+            },
           },
+        ],
+      });
+    }
+    if (req.query.startDate && req.query.endDate) {
+      let createdAtGTE = new Date(
+        moment(req.query.startDate)
+          .utc("0530")
+          .format()
+      );
+      let createdAtLTE = new Date(
+        moment(req.query.endDate)
+          .utc("0530")
+          .format()
+      );
+      query["$and"].push({
+        createdAt: {
+          $gte: createdAtGTE,
+          $lte: createdAtLTE,
         },
-      ],
-    });
+      });
+    }
+    if (query["$and"] && query["$and"].length == 0) {
+      delete query["$and"];
+    }
+    console.log({ query }, query["$and"]);
+    var limit = req.query.limit ? parseInt(req.query.limit) : 10;
+    var page = req.query.page ? parseInt(req.query.page) : 0;
+    Brand.find(query)
+      .populate("createrId", "name profilePicUrl")
+      .sort({
+        createdAt: -1,
+      })
+      .limit(limit)
+      .skip(page * limit)
+      .lean()
+      .exec((err, brands) => {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.data = null;
+          response.memberMessage = "Some server error has occurred.";
+          return SendResponse(res);
+        } else {
+          Brand.count(query, async function(err, totalRecords) {
+            if (err) {
+              //send response to client
+              response.error = true;
+              response.status = 500;
+              response.errors = err;
+              response.memberMessage = "Some server error has occurred.";
+              response.data = null;
+              return SendResponse(res);
+            } else {
+              //send response to client
+              response.error = false;
+              response.status = 200;
+              response.errors = null;
+              response.data = brands;
+              response.totalRecords = totalRecords;
+              response.memberMessage = "List of brands fetched successfully.";
+              return SendResponse(res);
+            }
+          });
+        }
+      });
   }
-  if (req.query.startDate && req.query.endDate) {
-    let createdAtGTE = new Date(
-      moment(req.query.startDate)
-        .utc("0530")
-        .format()
-    );
-    let createdAtLTE = new Date(
-      moment(req.query.endDate)
-        .utc("0530")
-        .format()
-    );
-    query["$and"].push({
-      createdAt: {
-        $gte: createdAtGTE,
-        $lte: createdAtLTE,
-      },
-    });
-  }
-  if (query["$and"] && query["$and"].length == 0) {
-    delete query["$and"];
-  }
-  console.log({ query }, query["$and"]);
-  var limit = req.query.limit ? parseInt(req.query.limit) : 10;
-  var page = req.query.page ? parseInt(req.query.page) : 0;
-  Brand.find(query)
-    .populate("createrId", "name profilePicUrl")
-    .sort({
-      createdAt: -1,
-    })
-    .limit(limit)
-    .skip(page * limit)
-    .lean()
-    .exec((err, brands) => {
-      if (err) {
-        //send response to client
-        response.error = true;
-        response.status = 500;
-        response.errors = err;
-        response.data = null;
-        response.memberMessage = "Some server error has occurred.";
-        return SendResponse(res);
-      } else {
-        Brand.count(query, async function(err, totalRecords) {
-          if (err) {
-            //send response to client
-            response.error = true;
-            response.status = 500;
-            response.errors = err;
-            response.memberMessage = "Some server error has occurred.";
-            response.data = null;
-            return SendResponse(res);
-          } else {
-            //send response to client
-            response.error = false;
-            response.status = 200;
-            response.errors = null;
-            response.data = brands;
-            response.totalRecords = totalRecords;
-            response.memberMessage = "List of brands fetched successfully.";
-            return SendResponse(res);
-          }
-        });
-      }
-    });
 };
 
 /*-----  End of getdealers  ------*/
@@ -547,7 +572,7 @@ methods.createCategory = (req, res) => {
     Category.find({
       sUrl: req.body.sUrl,
       active: true,
-    }).exec((err, categorys) => {
+    }).exec((err, categories) => {
       if (err) {
         //send response to client
         response.error = true;
@@ -556,13 +581,13 @@ methods.createCategory = (req, res) => {
         response.data = null;
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
-      } else if (categorys && categorys.length > 0) {
+      } else if (categories && categories.length > 0) {
         //send response to client
         response.error = true;
         response.status = 400;
         response.errors = null;
         response.data = null;
-        response.memberMessage = "Categorys url is already exist.";
+        response.memberMessage = "Categories url is already exist.";
         return SendResponse(res);
       } else {
         var category = new Category({
@@ -584,7 +609,7 @@ methods.createCategory = (req, res) => {
             response.status = 200;
             response.errors = null;
             response.data = category;
-            response.memberMessage = "category has created successfully.";
+            response.memberMessage = "Category has created successfully.";
             return SendResponse(res);
           }
         });
@@ -596,93 +621,119 @@ methods.createCategory = (req, res) => {
 /*-----  End of createCategory  ------*/
 
 /*=====================================
-***   get list of categorys  ***
+***   get list of categories  ***
 =======================================*/
 
-methods.getCategorys = async (req, res) => {
-  var query = {
-    active: true,
-  };
-  if (req.query.categoryStatus && req.query.categoryStatus != "all") {
-    query.public = req.query.categoryStatus === "deactivated" ? false : true;
-  }
-  query["$and"] = [];
-  if (req.query.searchText && req.query.searchText !== "") {
-    query["$and"].push({
-      $or: [
-        {
-          name: {
-            $regex: ".*" + req.query.searchText + ".*",
-            $options: "i",
+methods.getCategories = async (req, res) => {
+  if (req.query.categoryId) {
+    Category.findOne({ _id: req.query.categoryId })
+      .populate("createrId", "name profilePicUrl")
+      .lean()
+      .exec((err, categories) => {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.data = null;
+          response.memberMessage = "Some server error has occurred.";
+          return SendResponse(res);
+        } else {
+          //send response to client
+          response.error = false;
+          response.status = 200;
+          response.errors = null;
+          response.data = categories;
+          response.memberMessage = "Category info fetched successfully.";
+          return SendResponse(res);
+        }
+      });
+  } else {
+    var query = {
+      active: true,
+    };
+    if (req.query.categoryStatus && req.query.categoryStatus != "all") {
+      query.public = req.query.categoryStatus === "deactivated" ? false : true;
+    }
+    query["$and"] = [];
+    if (req.query.searchText && req.query.searchText !== "") {
+      query["$and"].push({
+        $or: [
+          {
+            name: {
+              $regex: ".*" + req.query.searchText + ".*",
+              $options: "i",
+            },
           },
+        ],
+      });
+    }
+    if (req.query.startDate && req.query.endDate) {
+      let createdAtGTE = new Date(
+        moment(req.query.startDate)
+          .utc("0530")
+          .format()
+      );
+      let createdAtLTE = new Date(
+        moment(req.query.endDate)
+          .utc("0530")
+          .format()
+      );
+      query["$and"].push({
+        createdAt: {
+          $gte: createdAtGTE,
+          $lte: createdAtLTE,
         },
-      ],
-    });
+      });
+    }
+    if (query["$and"] && query["$and"].length == 0) {
+      delete query["$and"];
+    }
+    console.log({ query }, query["$and"]);
+    var limit = req.query.limit ? parseInt(req.query.limit) : 10;
+    var page = req.query.page ? parseInt(req.query.page) : 0;
+    Category.find(query)
+      .populate("createrId", "name profilePicUrl")
+      .sort({
+        createdAt: -1,
+      })
+      .limit(limit)
+      .skip(page * limit)
+      .lean()
+      .exec((err, categories) => {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.data = null;
+          response.memberMessage = "Some server error has occurred.";
+          return SendResponse(res);
+        } else {
+          Category.count(query, async function(err, totalRecords) {
+            if (err) {
+              //send response to client
+              response.error = true;
+              response.status = 500;
+              response.errors = err;
+              response.memberMessage = "Some server error has occurred.";
+              response.data = null;
+              return SendResponse(res);
+            } else {
+              //send response to client
+              response.error = false;
+              response.status = 200;
+              response.errors = null;
+              response.data = categories;
+              response.totalRecords = totalRecords;
+              response.memberMessage =
+                "List of categories fetched successfully.";
+              return SendResponse(res);
+            }
+          });
+        }
+      });
   }
-  if (req.query.startDate && req.query.endDate) {
-    let createdAtGTE = new Date(
-      moment(req.query.startDate)
-        .utc("0530")
-        .format()
-    );
-    let createdAtLTE = new Date(
-      moment(req.query.endDate)
-        .utc("0530")
-        .format()
-    );
-    query["$and"].push({
-      createdAt: {
-        $gte: createdAtGTE,
-        $lte: createdAtLTE,
-      },
-    });
-  }
-  if (query["$and"] && query["$and"].length == 0) {
-    delete query["$and"];
-  }
-  console.log({ query }, query["$and"]);
-  var limit = req.query.limit ? parseInt(req.query.limit) : 10;
-  var page = req.query.page ? parseInt(req.query.page) : 0;
-  Category.find(query)
-    .populate("createrId", "name profilePicUrl")
-    .sort({
-      createdAt: -1,
-    })
-    .limit(limit)
-    .skip(page * limit)
-    .lean()
-    .exec((err, categorys) => {
-      if (err) {
-        //send response to client
-        response.error = true;
-        response.status = 500;
-        response.errors = err;
-        response.data = null;
-        response.memberMessage = "Some server error has occurred.";
-        return SendResponse(res);
-      } else {
-        Category.count(query, async function(err, totalRecords) {
-          if (err) {
-            //send response to client
-            response.error = true;
-            response.status = 500;
-            response.errors = err;
-            response.memberMessage = "Some server error has occurred.";
-            response.data = null;
-            return SendResponse(res);
-          } else {
-            //send response to client
-            response.error = false;
-            response.status = 200;
-            response.errors = null;
-            response.data = categorys;
-            response.totalRecords = totalRecords;
-            response.memberMessage = "List of categorys fetched successfully.";
-            return SendResponse(res);
-          }
-        });
-      }
-    });
 };
 
 /*-----  End of getdealers  ------*/
@@ -716,7 +767,7 @@ methods.updateCategory = (req, res) => {
       _id: { $ne: categoryId },
       sUrl: req.body.sUrl,
       active: true,
-    }).exec((err, categorys) => {
+    }).exec((err, categories) => {
       if (err) {
         //send response to client
         response.error = true;
@@ -725,13 +776,13 @@ methods.updateCategory = (req, res) => {
         response.data = null;
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
-      } else if (categorys && categorys.length > 0) {
+      } else if (categories && categories.length > 0) {
         //send response to client
         response.error = true;
         response.status = 400;
         response.errors = null;
         response.data = null;
-        response.memberMessage = "Categorys url is already exist.";
+        response.memberMessage = "Categories url is already exist.";
         return SendResponse(res);
       } else {
         Category.findOneAndUpdate(
@@ -928,95 +979,123 @@ methods.getBannerImages = async (req, res) => {
   var query = {
     active: true,
   };
-  if (req.query.bannerImageStatus && req.query.bannerImageStatus != "all") {
-    query.public = req.query.bannerImageStatus === "deactivated" ? false : true;
-  }
-  query["$and"] = [];
-  if (req.query.searchText && req.query.searchText !== "") {
-    query["$and"].push({
-      $or: [
-        {
-          title: {
-            $regex: ".*" + req.query.searchText + ".*",
-            $options: "i",
+  if (req.query.bannerImageId) {
+    BannerImage.findOne({ _id: req.query.bannerImageId })
+      .populate("productId", "name sUrl")
+      .populate("createrId", "name profilePicUrl")
+      .lean()
+      .exec((err, bannerImages) => {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.data = null;
+          response.memberMessage = "Some server error has occurred.";
+          return SendResponse(res);
+        } else {
+          //send response to client
+          response.error = false;
+          response.status = 200;
+          response.errors = null;
+          response.data = bannerImages;
+          response.memberMessage = "Banner image info fetched successfully.";
+          return SendResponse(res);
+        }
+      });
+  } else {
+    if (req.query.bannerImageStatus && req.query.bannerImageStatus != "all") {
+      query.public =
+        req.query.bannerImageStatus === "deactivated" ? false : true;
+    }
+    query["$and"] = [];
+    if (req.query.searchText && req.query.searchText !== "") {
+      query["$and"].push({
+        $or: [
+          {
+            title: {
+              $regex: ".*" + req.query.searchText + ".*",
+              $options: "i",
+            },
           },
-        },
-        {
-          subTitle: {
-            $regex: ".*" + req.query.searchText + ".*",
-            $options: "i",
+          {
+            subTitle: {
+              $regex: ".*" + req.query.searchText + ".*",
+              $options: "i",
+            },
           },
-        },
-      ],
-    });
-  }
+        ],
+      });
+    }
 
-  if (req.query.startDate && req.query.endDate) {
-    let createdAtGTE = new Date(
-      moment(req.query.startDate)
-        .utc("0530")
-        .format()
-    );
-    let createdAtLTE = new Date(
-      moment(req.query.endDate)
-        .utc("0530")
-        .format()
-    );
-    query["$and"].push({
-      createdAt: {
-        $gte: createdAtGTE,
-        $lte: createdAtLTE,
-      },
-    });
+    if (req.query.startDate && req.query.endDate) {
+      let createdAtGTE = new Date(
+        moment(req.query.startDate)
+          .utc("0530")
+          .format()
+      );
+      let createdAtLTE = new Date(
+        moment(req.query.endDate)
+          .utc("0530")
+          .format()
+      );
+      query["$and"].push({
+        createdAt: {
+          $gte: createdAtGTE,
+          $lte: createdAtLTE,
+        },
+      });
+    }
+
+    if (query["$and"] && query["$and"].length == 0) {
+      delete query["$and"];
+    }
+    console.log({ query }, "---", query["$and"]);
+    var limit = req.query.limit ? parseInt(req.query.limit) : 10;
+    var page = req.query.page ? parseInt(req.query.page) : 0;
+    BannerImage.find(query)
+      .populate("productId", "name sUrl")
+      .populate("createrId", "name profilePicUrl")
+      .sort({
+        createdAt: -1,
+      })
+      .limit(limit)
+      .skip(page * limit)
+      .lean()
+      .exec((err, bannerImages) => {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.data = null;
+          response.memberMessage = "Some server error has occurred.";
+          return SendResponse(res);
+        } else {
+          BannerImage.count(query, async function(err, totalRecords) {
+            if (err) {
+              //send response to client
+              response.error = true;
+              response.status = 500;
+              response.errors = err;
+              response.memberMessage = "Some server error has occurred.";
+              response.data = null;
+              return SendResponse(res);
+            } else {
+              //send response to client
+              response.error = false;
+              response.status = 200;
+              response.errors = null;
+              response.data = bannerImages;
+              response.totalRecords = totalRecords;
+              response.memberMessage =
+                "List of banner images fetched successfully.";
+              return SendResponse(res);
+            }
+          });
+        }
+      });
   }
-  if (query["$and"] && query["$and"].length == 0) {
-    delete query["$and"];
-  }
-  console.log({ query }, "---", query["$and"]);
-  var limit = req.query.limit ? parseInt(req.query.limit) : 10;
-  var page = req.query.page ? parseInt(req.query.page) : 0;
-  BannerImage.find(query)
-    .populate("productId", "name sUrl")
-    .populate("createrId", "name profilePicUrl")
-    .sort({
-      createdAt: -1,
-    })
-    .limit(limit)
-    .skip(page * limit)
-    .lean()
-    .exec((err, bannerImages) => {
-      if (err) {
-        //send response to client
-        response.error = true;
-        response.status = 500;
-        response.errors = err;
-        response.data = null;
-        response.memberMessage = "Some server error has occurred.";
-        return SendResponse(res);
-      } else {
-        BannerImage.count(query, async function(err, totalRecords) {
-          if (err) {
-            //send response to client
-            response.error = true;
-            response.status = 500;
-            response.errors = err;
-            response.memberMessage = "Some server error has occurred.";
-            response.data = null;
-            return SendResponse(res);
-          } else {
-            //send response to client
-            response.error = false;
-            response.status = 200;
-            response.errors = null;
-            response.data = bannerImages;
-            response.totalRecords = totalRecords;
-            response.memberMessage =
-              "List of bannerImages fetched successfully.";
-            return SendResponse(res);
-          }
-        });
-      }
-    });
 };
 
 /*-----  End of getdealers  ------*/
@@ -1065,7 +1144,7 @@ methods.updateBannerImage = (req, res) => {
         response.status = 400;
         response.errors = null;
         response.data = null;
-        response.memberMessage = "bannerImage not found.";
+        response.memberMessage = "Banner image not found.";
         return SendResponse(res);
       } else {
         //send response to client
@@ -1073,7 +1152,7 @@ methods.updateBannerImage = (req, res) => {
         response.status = 200;
         response.errors = null;
         response.data = bannerImage;
-        response.memberMessage = "bannerImage has updated successfully.";
+        response.memberMessage = "Banner image has updated successfully.";
         return SendResponse(res);
       }
     });
