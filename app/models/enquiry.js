@@ -2,7 +2,7 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
-var Enquery = new Schema({
+var Enquiry = new Schema({
   productId: {
     type: ObjectId,
     default: null,
@@ -39,10 +39,15 @@ var Enquery = new Schema({
     default: true, //active
     enum: [true, false],
   },
+  isApproved: {
+    type: Boolean,
+    default: false, //active
+    enum: [true, false],
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-mongoose.model("enquery", Enquery);
+mongoose.model("enquiry", Enquiry);

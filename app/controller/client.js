@@ -3,7 +3,7 @@ var mongoose = require("mongoose");
 var jwt = require("jsonwebtoken");
 var session = require("../libs/session");
 var Client = mongoose.model("client");
-var Enquery = mongoose.model("enquery");
+var Enquiry = mongoose.model("enquiry");
 var Session = mongoose.model("session");
 var config = require("../../config/config");
 var randomstring = require("randomstring");
@@ -56,6 +56,12 @@ module.exports.controller = function(router) {
     .post(methods.createClient)
     .put(session.checkToken, methods.updateClients)
     .delete(session.checkToken, methods.deactivateClientId);
+  router
+    .route("/client/enquiries")
+    .get(session.checkToken, methods.getClientEnquiries)
+    // .post(methods.createClient)
+    .put(session.checkToken, methods.updateClientEnquiries);
+  // .delete(session.checkToken, methods.deactivateClientId);
 };
 
 /*===================================
@@ -104,13 +110,13 @@ methods.clientContactUs = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else {
-            var enquery = new Enquery({
+            var enquiry = new Enquiry({
               clientId: client._id,
               contactUs: true,
               subject: req.body.subject,
               message: req.body.message,
             });
-            enquery.save((err) => {
+            enquiry.save((err) => {
               if (err) {
                 //send response to client
                 response.error = true;
@@ -145,13 +151,13 @@ methods.clientContactUs = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else {
-            var enquery = new Enquery({
+            var enquiry = new Enquiry({
               clientId: client._id,
               contactUs: true,
               subject: req.body.subject,
               message: req.body.message,
             });
-            enquery.save((err) => {
+            enquiry.save((err) => {
               if (err) {
                 //send response to client
                 response.error = true;
@@ -228,13 +234,13 @@ methods.createClient = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else {
-            var enquery = new Enquery({
+            var enquiry = new Enquiry({
               clientId: client._id,
               quantity: req.body.quantity,
               productId: req.body.productId,
               message: req.body.message,
             });
-            enquery.save((err) => {
+            enquiry.save((err) => {
               if (err) {
                 //send response to client
                 response.error = true;
@@ -269,13 +275,13 @@ methods.createClient = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else {
-            var enquery = new Enquery({
+            var enquiry = new Enquiry({
               clientId: client._id,
               quantity: req.body.quantity,
               productId: req.body.productId,
               message: req.body.message,
             });
-            enquery.save((err) => {
+            enquiry.save((err) => {
               if (err) {
                 //send response to client
                 response.error = true;
@@ -337,7 +343,7 @@ methods.getClients = async (req, res) => {
       active: true,
     };
     if (req.query.clientStatus && req.query.clientStatus != "all") {
-      query.public = req.query.clientStatus === "deactivated" ? false : true;
+      query.isApproved = req.query.clientStatus === "approved" ? true : false;
     }
     query["$and"] = [];
     if (req.query.searchText && req.query.searchText !== "") {
@@ -425,18 +431,141 @@ methods.getClients = async (req, res) => {
   }
 };
 
-/*-----  End of getclients  ------*/
+/*=====================================
+***   get list of client enquiries ***
+=======================================*/
+methods.getClientEnquiries = async (req, res) => {
+  if (req.query.enquiryId) {
+    Enquiry.findOne({ _id: req.query.enquiryId })
+      .populate("productId")
+      .populate("clientId")
+      .populate("staffMemberId", "name profilePicUrl")
+      .lean()
+      .exec((err, enquiry) => {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.data = null;
+          response.memberMessage = "Some server error has occurred.";
+          return SendResponse(res);
+        } else {
+          //send response to client
+          response.error = false;
+          response.status = 200;
+          response.errors = null;
+          response.data = enquiry;
+          response.memberMessage = "Enquiry info fetched successfully.";
+          return SendResponse(res);
+        }
+      });
+  } else {
+    var query = {
+      active: true,
+    };
+    if (req.query.clientId) {
+      query.clientId = req.query.clientId;
+    }
+    if (req.query.enquiryStatus && req.query.enquiryStatus != "all") {
+      query.isApproved = req.query.enquiryStatus === "approved" ? true : false;
+    }
+    query["$and"] = [];
+    if (req.query.searchText && req.query.searchText !== "") {
+      query["$and"].push({
+        $or: [
+          {
+            name: {
+              $regex: ".*" + req.query.searchText + ".*",
+              $options: "i",
+            },
+          },
+          {
+            contactNumber: {
+              $regex: ".*" + req.query.searchText + ".*",
+              $options: "i",
+            },
+          },
+        ],
+      });
+    }
+    if (req.query.startDate && req.query.endDate) {
+      let createdAtGTE = new Date(
+        moment(req.query.startDate)
+          .utc("0530")
+          .format()
+      );
+      let createdAtLTE = new Date(
+        moment(req.query.endDate)
+          .utc("0530")
+          .format()
+      );
+      query["$and"].push({
+        createdAt: {
+          $gte: createdAtGTE,
+          $lte: createdAtLTE,
+        },
+      });
+    }
+    if (query["$and"] && query["$and"].length == 0) {
+      delete query["$and"];
+    }
+    console.log({ query }, query["$and"]);
+    var limit = req.query.limit ? parseInt(req.query.limit) : 10;
+    var page = req.query.page ? parseInt(req.query.page) : 0;
+    Enquiry.find(query)
+      .populate("productId")
+      .populate("clientId")
+      .populate("staffMemberId", "name profilePicUrl")
+      .sort({
+        createdAt: -1,
+      })
+      .limit(limit)
+      .skip(page * limit)
+      .lean()
+      .exec((err, enquiries) => {
+        if (err) {
+          //send response to client
+          response.error = true;
+          response.status = 500;
+          response.errors = err;
+          response.data = null;
+          response.memberMessage = "Some server error has occurred.";
+          return SendResponse(res);
+        } else {
+          Enquiry.count(query, async function(err, totalRecords) {
+            if (err) {
+              //send response to client
+              response.error = true;
+              response.status = 500;
+              response.errors = err;
+              response.memberMessage = "Some server error has occurred.";
+              response.data = null;
+              return SendResponse(res);
+            } else {
+              //send response to client
+              response.error = false;
+              response.status = 200;
+              response.errors = null;
+              response.data = enquiries;
+              response.totalRecords = totalRecords;
+              response.memberMessage = "List of enquiry fetched successfully.";
+              return SendResponse(res);
+            }
+          });
+        }
+      });
+  }
+};
+/*-----  End of getClientEnquiries  ------*/
 
 /*========================================
-***   update existnig client  ***
+***   update existnig client enquiries  ***
 ==========================================*/
 
-methods.updateClients = (req, res) => {
-  req.checkBody("clientId", "clientId cannot be empty.").notEmpty();
-  req.checkBody("name", "name cannot be empty.").notEmpty();
-  req.checkBody("contactNumber", "contactNumber cannot be empty.").notEmpty();
-  // req.checkBody("address", "address cannot be empty.").notEmpty();
-  req.checkBody("email", "email cannot be empty.").notEmpty();
+methods.updateClientEnquiries = (req, res) => {
+  req.checkBody("enquiryId", "enquiryId cannot be empty.").notEmpty();
+  req.checkBody("isApproved", "isApproved cannot be empty.").notEmpty();
   var errors = req.validationErrors(true);
   if (errors) {
     response.error = true;
@@ -446,9 +575,76 @@ methods.updateClients = (req, res) => {
     return SendResponse(res, 400);
   } else {
     //Database functions here
-    Client.findOne({
-      _id: req.body.clientId,
-    }).exec((err, client) => {
+    Enquiry.findOneAndUpdate(
+      {
+        _id: req.body.enquiryId,
+      },
+      {
+        ...req.body,
+        staffMemberId: req.staffMember._id,
+      },
+      { new: true }
+    ).exec((err, enquiry) => {
+      if (err) {
+        //send response to client
+        response.error = true;
+        response.status = 500;
+        response.errors = err;
+        response.data = null;
+        response.memberMessage = "Some server error has occurred.";
+        return SendResponse(res);
+      } else if (!enquiry) {
+        //send response to client
+        response.error = true;
+        response.status = 400;
+        response.errors = null;
+        response.data = null;
+        response.memberMessage = "enquiry not found.";
+        return SendResponse(res);
+      } else {
+        //send response to client
+        response.error = false;
+        response.status = 200;
+        response.errors = null;
+        response.data = enquiry;
+        response.memberMessage = "enquiry has updated successfully.";
+        return SendResponse(res);
+      }
+    });
+  }
+};
+
+/*-----  End of updateClientEnquiries  ------*/
+/*========================================
+***   update existnig client  ***
+==========================================*/
+
+methods.updateClients = (req, res) => {
+  req.checkBody("clientId", "clientId cannot be empty.").notEmpty();
+  // req.checkBody("name", "name cannot be empty.").notEmpty();
+  // req.checkBody("contactNumber", "contactNumber cannot be empty.").notEmpty();
+  // // req.checkBody("address", "address cannot be empty.").notEmpty();
+  // req.checkBody("email", "email cannot be empty.").notEmpty();
+  var errors = req.validationErrors(true);
+  if (errors) {
+    response.error = true;
+    response.memberMessage = "Validation Error";
+    response.data = null;
+    response.errors = errors;
+    return SendResponse(res, 400);
+  } else {
+    //Database functions here
+
+    Client.findOneAndUpdate(
+      {
+        _id: req.body.clientId,
+      },
+      {
+        ...req.body,
+        staffMemberId: req.staffMember._id,
+      },
+      { new: true }
+    ).exec((err, client) => {
       if (err) {
         //send response to client
         response.error = true;
@@ -466,41 +662,13 @@ methods.updateClients = (req, res) => {
         response.memberMessage = "client not found.";
         return SendResponse(res);
       } else {
-        Client.findOneAndUpdate(
-          {
-            _id: clientId,
-          },
-          {
-            ...req.body,
-            adminId: req.staffMember._id,
-          }
-        ).exec((err, client) => {
-          if (err) {
-            //send response to client
-            response.error = true;
-            response.status = 500;
-            response.errors = err;
-            response.data = null;
-            response.memberMessage = "Some server error has occurred.";
-            return SendResponse(res);
-          } else if (!client) {
-            //send response to client
-            response.error = true;
-            response.status = 400;
-            response.errors = null;
-            response.data = null;
-            response.memberMessage = "client not found.";
-            return SendResponse(res);
-          } else {
-            //send response to client
-            response.error = false;
-            response.status = 200;
-            response.errors = null;
-            response.data = client;
-            response.memberMessage = "client has updated successfully.";
-            return SendResponse(res);
-          }
-        });
+        //send response to client
+        response.error = false;
+        response.status = 200;
+        response.errors = null;
+        response.data = client;
+        response.memberMessage = "client has updated successfully.";
+        return SendResponse(res);
       }
     });
   }

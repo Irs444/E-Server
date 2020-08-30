@@ -31,6 +31,11 @@ var staffMember = new Schema({
     type: String,
     default: "",
   },
+  passwordReset: {
+    type: Boolean,
+    default: false,
+    enum: [true, false],
+  },
   readOnly: {
     type: Boolean,
     default: false,
@@ -39,14 +44,34 @@ var staffMember = new Schema({
   accessLevel: {
     type: Number,
     default: 1, //super admin, organization, agent
-    enum: [1, 2, 3, 4, 5, 6],
+    enum: [1, 2, 3],
   },
   active: {
-    type: Number,
-    default: 1, //active
-    enum: [0, 1],
+    type: Boolean,
+    default: true,
+    enum: [true, false],
   },
   appVersion: {
+    type: String,
+    default: "",
+  },
+  city: {
+    type: String,
+    default: "",
+  },
+  aboutMe: {
+    type: String,
+    default: "",
+  },
+  postalCode: {
+    type: String,
+    default: "",
+  },
+  country: {
+    type: String,
+    default: "",
+  },
+  address: {
     type: String,
     default: "",
   },

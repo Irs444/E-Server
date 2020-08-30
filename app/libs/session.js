@@ -46,41 +46,41 @@ session.checkToken = function(req, res, next) {
   console.log("bearerToken", { bearerToken }, req.headers["authorization"]);
   var token = bearerToken || req.body.token || req.query.token;
   console.log("token", { token });
-  jwt.verify(token, config.sessionSecret, function(err, decoded) {
-    console.log("22222", { err });
-    if (err) {
-      response.memberMessage =
-        "Your session has been expired. Please re-login..";
-      return SendResponse(res, 401);
-    } else {
-      Session.findOne({
-        authToken: token,
-      })
-        .lean()
-        .exec(function(err, session) {
-          if (err || !session) {
-            response.memberMessage =
-              "Your session has been expired. Please re-login.";
-            return SendResponse(res, 401);
-          } else {
-            StaffMember.findOne({
-              _id: session.staffMemberId,
-            })
-              .populate("dealerId")
-              .exec(function(err, staffMember) {
-                if (err || !staffMember) {
-                  response.memberMessage =
-                    "Your session has been expired. Please re-login";
-                  return SendResponse(res, 401);
-                } else {
-                  req.staffMember = staffMember;
-                  next();
-                }
-              });
-          }
-        });
-    }
-  });
+  // jwt.verify(token, config.sessionSecret, function(err, decoded) {
+  //   console.log("22222", { err });
+  //   if (err) {
+  //     response.memberMessage =
+  //       "Your session has been expired. Please re-login..";
+  //     return SendResponse(res, 401);
+  //   } else {
+  Session.findOne({
+    authToken: token,
+  })
+    .lean()
+    .exec(function(err, session) {
+      if (err || !session) {
+        response.memberMessage =
+          "Your session has been expired. Please re-login.";
+        return SendResponse(res, 401);
+      } else {
+        StaffMember.findOne({
+          _id: session.staffMemberId,
+        })
+          .populate("dealerId")
+          .exec(function(err, staffMember) {
+            if (err || !staffMember) {
+              response.memberMessage =
+                "Your session has been expired. Please re-login";
+              return SendResponse(res, 401);
+            } else {
+              req.staffMember = staffMember;
+              next();
+            }
+          });
+      }
+    });
+  //   }
+  // });
 };
 
 /*********************
