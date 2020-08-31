@@ -3,16 +3,6 @@ var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
 var Client = new Schema({
-  // productId: {
-  //   type: ObjectId,
-  //   default: null,
-  //   ref: "product",
-  // },
-  // adminId: {
-  //   type: ObjectId,
-  //   default: null,
-  //   ref: "staff-member",
-  // },
   name: {
     type: String,
     default: "",
@@ -40,6 +30,17 @@ var Client = new Schema({
   active: {
     type: Boolean,
     default: true, //active
+    enum: [true, false],
+  },
+
+  staffMemberId: {
+    type: ObjectId,
+    default: null,
+    ref: "staff-member",
+  },
+  isApproved: {
+    type: Boolean,
+    default: false, //active
     enum: [true, false],
   },
   createdAt: {
