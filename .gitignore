@@ -1,7 +1,7 @@
 .env
 node_modules
-# media/*
-# media/profileImages/*
-# !media/profileImages/profile_m.jpeg
+media/*
+media/profileImages/*
+!media/profileImages/profile_m.jpeg
 package-lock.json
 uploads
