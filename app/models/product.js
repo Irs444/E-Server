@@ -263,7 +263,7 @@ var BannerImage = new Schema({
   productId: {
     type: ObjectId,
     default: null,
-    ref: "product",
+    ref: "category",
   },
   title: {
     type: String,
@@ -302,7 +302,7 @@ var BannerImage = new Schema({
   },
 });
 
-mongoose.model("banner_image", BannerImage);
+mongoose.model("banners_image", BannerImage);
 mongoose.model("category", Category);
 mongoose.model("brand", brand);
 mongoose.model("product", product);

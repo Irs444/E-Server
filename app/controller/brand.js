@@ -6,7 +6,7 @@ var StaffMember = mongoose.model("staff-member");
 var Dealer = mongoose.model("dealer");
 var Session = mongoose.model("session");
 var Brand = mongoose.model("brand");
-var BannerImage = mongoose.model("banner_image");
+var BannerImage = mongoose.model("banners_image");
 var Category = mongoose.model("category");
 var config = require("../../config/config");
 var randomstring = require("randomstring");
@@ -929,9 +929,9 @@ methods.updateCategoryStatus = (req, res) => {
 
 methods.createBannerImage = (req, res) => {
   req.checkBody("productId", "productId cannot be empty.").notEmpty();
-  req.checkBody("title", "title cannot be empty.").notEmpty();
+  // req.checkBody("title", "title cannot be empty.").notEmpty();
   req.checkBody("imageUrl", "imageUrl cannot be empty.").notEmpty();
-  req.checkBody("subTitle", "subTitle cannot be empty.").notEmpty();
+  // req.checkBody("subTitle", "subTitle cannot be empty.").notEmpty();
 
   var errors = req.validationErrors(true);
   if (errors) {
@@ -1107,9 +1107,9 @@ methods.getBannerImages = async (req, res) => {
 methods.updateBannerImage = (req, res) => {
   req.checkBody("bannerImageId", "bannerImageId cannot be empty.").notEmpty();
   req.checkBody("productId", "productId cannot be empty.").notEmpty();
-  req.checkBody("title", "title cannot be empty.").notEmpty();
+  // req.checkBody("title", "title cannot be empty.").notEmpty();
   req.checkBody("imageUrl", "imageUrl cannot be empty.").notEmpty();
-  req.checkBody("subTitle", "subTitle cannot be empty.").notEmpty();
+  // req.checkBody("subTitle", "subTitle cannot be empty.").notEmpty();
   var errors = req.validationErrors(true);
   if (errors) {
     response.error = true;

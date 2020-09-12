@@ -14,7 +14,8 @@ rsaWrapper.serverExampleEncrypt();
 global.mediaProfilePath = __dirname + "/media/profileImages";
 global.mediaPath = __dirname + "/media";
 global.uploadPath = __dirname + "/uploads";
-
+global.reportPath = __dirname + "/report";
+global.sample = __dirname + "/public/sample";
 global.AESKey = aesWrapper.generateKey();
 
 // Connect to mongodb

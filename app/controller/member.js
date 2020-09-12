@@ -4,6 +4,7 @@ var session = require("../libs/session");
 var StaffMember = mongoose.model("staff-member");
 // var Role = mongoose.model("role");
 var Session = mongoose.model("session");
+var Enquiry = mongoose.model("enquiry");
 var config = require("../../config/config");
 var demoMember = require("../data/demoMembers");
 var cryptography = require("../libs/cryptography.js");
@@ -50,17 +51,45 @@ module.exports.controller = function(router) {
 
   router.route("/ping").get(session.checkToken, function(req, res) {
     //send response to client
-    response.error = false;
-    response.status = 200;
-    response.errors = null;
-    response.memberMessage = "success";
-    response.data = { staffMember: req.staffMember };
-    return SendResponse(res);
+
+    Enquiry.find({ active: true })
+      .populate("productId")
+      .populate("clientId")
+      .populate("staffMemberId", "name profilePicUrl")
+      .sort({
+        createdAt: -1,
+      })
+      .limit(3)
+      .lean()
+      .exec((err, enquiries) => {
+        if (err) {
+          //send response to client
+          response.error = false;
+          response.status = 200;
+          response.errors = null;
+          response.memberMessage = "success";
+          response.enquiries = [];
+          response.data = { staffMember: req.staffMember };
+          return SendResponse(res);
+        } else {
+          response.error = false;
+          response.status = 200;
+          response.errors = null;
+          response.memberMessage = "success";
+          response.enquiries = enquiries;
+          response.data = { staffMember: req.staffMember };
+          return SendResponse(res);
+        }
+      });
   });
   router
     .route("/members")
     .get(session.checkToken, methods.getMembers)
     .delete(session.checkToken, methods.deactivateMemberId);
+  router
+    .route("/password/reset")
+    .put(session.checkToken, methods.passwordReset);
+
   router
     .route("/staffMember")
     .get(session.checkToken, methods.getStaffMembers)
@@ -291,7 +320,53 @@ methods.memberLogin = (req, res) => {
 };
 
 /*-----  End of memberLogin  ------*/
-
+methods.passwordReset = (req, res) => {
+  req.checkBody("password", "Password cannot be empty.").notEmpty();
+  var errors = req.validationErrors(true);
+  if (errors) {
+    response.error = true;
+    response.memberMessage = "Validation Error";
+    response.data = null;
+    response.errors = errors;
+    return SendResponse(res, 400);
+  } else {
+    req.body.password = cryptography.encrypt(req.body.password);
+    //Database functions here
+    StaffMember.findOneAndUpdate(
+      {
+        _id: req.staffMember._id,
+      },
+      { ...req.body },
+      { new: true }
+    ).exec((err, member) => {
+      if (err) {
+        //send response to client
+        response.error = true;
+        response.status = 500;
+        response.errors = err;
+        response.data = null;
+        response.memberMessage = "Some server error has occurred.";
+        return SendResponse(res);
+      } else if (!member) {
+        //send response to client
+        response.error = true;
+        response.status = 400;
+        response.errors = null;
+        response.data = null;
+        response.memberMessage = "Staff member not found.";
+        return SendResponse(res);
+      } else {
+        //send response to client
+        response.error = false;
+        response.status = 200;
+        response.errors = null;
+        response.data = member;
+        response.memberMessage = "Password updated successfully.";
+        return SendResponse(res);
+      }
+    });
+  }
+};
 /*=====================================
 ***   get list of members  ***
 =======================================*/
