@@ -5,6 +5,7 @@ var session = require("../libs/session");
 var StaffMember = mongoose.model("staff-member");
 var Dealer = mongoose.model("dealer");
 var Session = mongoose.model("session");
+var Enquiry = mongoose.model("enquiry");
 var config = require("../../config/config");
 var randomstring = require("randomstring");
 const aesWrapper = require("../libs/aes-wrapper");
@@ -193,15 +194,44 @@ methods.adminLogin = function(req, res) {
                 return SendResponse(res);
               } else {
                 //send response to client
-                response.error = false;
-                response.status = 200;
-                response.errors = null;
-                response.memberMessage = "You are logged in successfully.";
-                response.data = {
-                  staffMember: staffMember,
-                  authToken: token,
-                };
-                return SendResponse(res);
+
+                Enquiry.find({ active: true })
+                  .populate("productId")
+                  .populate("clientId")
+                  .populate("staffMemberId", "name profilePicUrl")
+                  .sort({
+                    createdAt: -1,
+                  })
+                  .limit(3)
+                  .lean()
+                  .exec((err, enquiries) => {
+                    if (err) {
+                      //send response to client
+                      response.error = false;
+                      response.status = 200;
+                      response.errors = null;
+                      response.memberMessage =
+                        "You are logged in successfully.";
+                      response.enquiries = [];
+                      response.data = {
+                        staffMember: staffMember,
+                        authToken: token,
+                      };
+                      return SendResponse(res);
+                    } else {
+                      response.error = false;
+                      response.status = 200;
+                      response.errors = null;
+                      response.memberMessage =
+                        "You are logged in successfully.";
+                      response.enquiries = enquiries;
+                      response.data = {
+                        staffMember: staffMember,
+                        authToken: token,
+                      };
+                      return SendResponse(res);
+                    }
+                  });
               }
             });
           }

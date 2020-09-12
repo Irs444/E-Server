@@ -16,6 +16,7 @@
     "cheerio": "^1.0.0-rc.2",
     "csvtojson": "^2.0.10",
     "dotenv": "^4.0.0",
+    "easy-template-x": "^1.0.0",
     "exceljs": "^1.15.0",
     "express": "^4.16.2",
     "express-validator": "^2.20.10",

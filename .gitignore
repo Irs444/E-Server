@@ -1,5 +1,6 @@
 .env
 node_modules
+report/*
 media/*
 media/profileImages/*
 !media/profileImages/profile_m.jpeg
