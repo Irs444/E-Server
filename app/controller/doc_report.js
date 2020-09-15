@@ -8,7 +8,7 @@ var Session = mongoose.model("session");
 var Invoice = mongoose.model("invoice");
 // var _ = require("lodash");
 var mkdirp = require("mkdirp");
-const word2pdf = require("word2pdf-promises");
+// const word2pdf = require("word2pdf-promises");
 const fs = require("fs");
 /* the response object for API
     error : true / false 
