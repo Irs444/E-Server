@@ -80,14 +80,15 @@ module.exports.controller = function(router) {
   router.route("/invoice/sample").get(function(req, res) {
     const libre = require("libreoffice-convert");
 
-    const path = require("path");
-    const fs = require("fs");
+    // const path = require("path");
+    // const fs = require("fs");
 
     const extend = ".pdf";
     const enterPath = path.join(sample, "/invoice_doc.docx"); // path.join(__dirname, "/resources/example.docx");
     const outputPath = path.join(__dirname, `/resources/example${extend}`);
 
     var excelfile = `${reportPath}/invoice-${req.query.name}.pdf`;
+    console.log({ excelfile });
     // Read file
     var content = fs.readFileSync(path.resolve(sample, "invoice_doc.docx"));
     // const file = fs.readFileSync(sample, "/invoice_doc.docx");
