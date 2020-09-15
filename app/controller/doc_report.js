@@ -88,7 +88,7 @@ module.exports.controller = function(router) {
     const outputPath = path.join(__dirname, `/resources/example${extend}`);
 
     var excelfile = `${reportPath}/invoice-${req.query.name}.pdf`;
-    console.log({ excelfile, enterPath :sample, "/invoice_doc.docx"});
+    console.log({ excelfile, enterPath: sample + "/invoice_doc.docx" });
     // Read file
     var content = fs.readFileSync(sample, "/invoice_doc.docx");
     // const file = fs.readFileSync(sample, "/invoice_doc.docx");
