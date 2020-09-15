@@ -94,7 +94,7 @@ module.exports.controller = function(router) {
       enterPath: sample + "/invoice_doc.docx",
     });
     // Read file
-    var content = fs.readFileSync(sample, "/invoice_doc.docx");
+    // var content = fs.readFileSync(sample, "/invoice_doc.docx");
     // const file = fs.readFileSync(sample, "/invoice_doc.docx");
     // Convert it to pdf format with undefined filter (see Libreoffice doc about filter)
     // libre.convert(content, extend, undefined, (err, done) => {
