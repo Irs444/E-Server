@@ -1,6 +1,7 @@
 var session = require("../libs/session");
 var report = require("../libs/report");
 var path = require("path");
+const carbone = require("carbone");
 var mime = require("mime");
 var mongoose = require("mongoose");
 var Session = mongoose.model("session");
@@ -88,18 +89,33 @@ module.exports.controller = function(router) {
     const outputPath = path.join(__dirname, `/resources/example${extend}`);
 
     var excelfile = `${reportPath}/invoice-${req.query.name}.pdf`;
-    console.log({ excelfile, enterPath: sample + "/invoice_doc.docx" });
+    console.log({
+      excelfile,
+      enterPath: sample + "/invoice_doc.docx",
+    });
     // Read file
     var content = fs.readFileSync(sample, "/invoice_doc.docx");
     // const file = fs.readFileSync(sample, "/invoice_doc.docx");
     // Convert it to pdf format with undefined filter (see Libreoffice doc about filter)
-    libre.convert(content, extend, undefined, (err, done) => {
-      if (err) {
-        console.log(`Error converting file: ${err}`);
+    // libre.convert(content, extend, undefined, (err, done) => {
+    //   if (err) {
+    //     console.log(`Error converting file: ${err}`);
+    //   }
+    //   // Here in done you have pdf file which you can save or transfer in another stream
+    //   fs.writeFileSync(excelfile, done);
+    // });
+    carbone.render(
+      path.resolve(sample, "invoice_doc.docx"),
+      {},
+      { convertTo: "pdf" },
+      function(err, result) {
+        if (err) {
+          return console.log("error----------------", { err });
+        }
+        // write the result
+        fs.writeFileSync(excelfile, result);
       }
-      // Here in done you have pdf file which you can save or transfer in another stream
-      fs.writeFileSync(excelfile, done);
-    });
+    );
   });
 };
 
