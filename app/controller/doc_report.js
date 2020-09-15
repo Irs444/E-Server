@@ -8,6 +8,8 @@ var Session = mongoose.model("session");
 var Invoice = mongoose.model("invoice");
 // var _ = require("lodash");
 var mkdirp = require("mkdirp");
+const word2pdf = require("word2pdf-promises");
+const fs = require("fs");
 /* the response object for API
     error : true / false 
     code : contains any error code
@@ -66,6 +68,37 @@ module.exports.controller = function(router) {
   router.route("/invoice/:id/:fileName").get(function(req, res) {
     console.log(req.params.fileName, "req.params.fileName");
     res.sendFile(reportPath + "/" + req.params.id + "/" + req.params.fileName);
+  });
+  router.route("/samplefile/name").get(function(req, res) {
+    // console.log(req.params.fileName, "req.params.fileName");
+    var excelfile = `${reportPath}/invoice-${req.params.name}.pdf`;
+    res.sendFile(
+      excelfile
+      // reportPath + "/" + req.params.id + "/" + req.params.fileName
+    );
+  });
+  router.route("sample/invoice").get(function(req, res) {
+    const libre = require("libreoffice-convert");
+
+    const path = require("path");
+    const fs = require("fs");
+
+    const extend = ".pdf";
+    const enterPath = path.join(sample, "/invoice_doc.docx"); // path.join(__dirname, "/resources/example.docx");
+    const outputPath = path.join(__dirname, `/resources/example${extend}`);
+
+    var excelfile = `${reportPath}/invoice-${req.query.name}.pdf`;
+    // Read file
+    const file = fs.readFileSync(sample, "/invoice_doc.docx");
+    // Convert it to pdf format with undefined filter (see Libreoffice doc about filter)
+    libre.convert(file, extend, undefined, (err, done) => {
+      if (err) {
+        console.log(`Error converting file: ${err}`);
+      }
+
+      // Here in done you have pdf file which you can save or transfer in another stream
+      fs.writeFileSync(excelfile, done);
+    });
   });
 };
 
@@ -231,6 +264,9 @@ methods.generateDocReportv2 = async function(req, res) {
               // console.log("Finish to create a Document file.\nTotal bytes created: " + written + "\n");
               // send response to client
               var excelfile = `${reportPath}/${invoice._id}/invoice-${invoice._id}.docx`;
+              // var createDocxPath =
+              //   reportPath + "/" + invoice._id + "/invoice-" + invoice._id + ".docx";
+              // fs.writeFileSync(createDocxPath, doc);
               var excelfilename = path.basename(excelfile);
               console.log(excelfile, "File");
               response.error = false;
