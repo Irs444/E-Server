@@ -69,7 +69,7 @@ module.exports.controller = function(router) {
     console.log(req.params.fileName, "req.params.fileName");
     res.sendFile(reportPath + "/" + req.params.id + "/" + req.params.fileName);
   });
-  router.route("/samplefile/name").get(function(req, res) {
+  router.route("/invoice/sample/:name").get(function(req, res) {
     // console.log(req.params.fileName, "req.params.fileName");
     var excelfile = `${reportPath}/invoice-${req.params.name}.pdf`;
     res.sendFile(
@@ -77,7 +77,7 @@ module.exports.controller = function(router) {
       // reportPath + "/" + req.params.id + "/" + req.params.fileName
     );
   });
-  router.route("sample/invoice").get(function(req, res) {
+  router.route("/invoice/sample").get(function(req, res) {
     const libre = require("libreoffice-convert");
 
     const path = require("path");
