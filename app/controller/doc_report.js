@@ -89,13 +89,13 @@ module.exports.controller = function(router) {
 
     var excelfile = `${reportPath}/invoice-${req.query.name}.pdf`;
     // Read file
-    const file = fs.readFileSync(sample, "/invoice_doc.docx");
+    var content = fs.readFileSync(path.resolve(sample, "invoice_doc.docx"));
+    // const file = fs.readFileSync(sample, "/invoice_doc.docx");
     // Convert it to pdf format with undefined filter (see Libreoffice doc about filter)
-    libre.convert(file, extend, undefined, (err, done) => {
+    libre.convert(content, extend, undefined, (err, done) => {
       if (err) {
         console.log(`Error converting file: ${err}`);
       }
-
       // Here in done you have pdf file which you can save or transfer in another stream
       fs.writeFileSync(excelfile, done);
     });
