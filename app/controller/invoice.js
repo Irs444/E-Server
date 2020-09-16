@@ -362,7 +362,19 @@ methods.generateDocReportv2 = async function(req, res) {
             } else {
               // console.log("Finish to create a Document file.\nTotal bytes created: " + written + "\n");
               // send response to client
-              var excelfile = `${reportPath}/${invoice._id}/invoice-${invoice._id}.docx`;
+              var docxConverter = require("docx-pdf");
+
+              docxConverter(
+                `${reportPath}/${invoice._id}/invoice-${invoice._id}.docx`,
+                `${reportPath}/${invoice._id}/invoice-${invoice._id}.pdf`,
+                function(err, result) {
+                  if (err) {
+                    console.log(err);
+                  }
+                  console.log("result" + result);
+                }
+              );
+              var excelfile = `${reportPath}/${invoice._id}/invoice-${invoice._id}.pdf`;
               // var createDocxPath =
               //   reportPath + "/" + invoice._id + "/invoice-" + invoice._id + ".docx";
               // fs.writeFileSync(createDocxPath, doc);
