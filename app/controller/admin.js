@@ -159,7 +159,7 @@ methods.adminLogin = function(req, res) {
             response.status = 400;
             response.errors = null;
             response.data = null;
-            response.memberMessage = "staffMember password is incorrect.";
+            response.memberMessage = "Member password is incorrect.";
             return SendResponse(res);
           } else {
             var token = jwt.sign(

@@ -8,22 +8,20 @@ var fs = require("fs");
 let report = {};
 
 report.generateStaticDoc = async (id, invoice, callback) => {
-  if (invoice.imageUrl) {
-    invoice["invoiceLogo"] = {
-      _type: "image",
-      source: fs.readFileSync(
-        path.resolve(__dirname, "../../" + invoice.imageUrl)
-      ),
-      format: "image/png",
-      width: 150,
-      height: 90,
-    };
-  }
+  // if (invoice.imageUrl) {
+  invoice["invoiceLogo"] = {
+    _type: "image",
+    source: fs.readFileSync(path.resolve(sample, "ATS_Logo.png")),
+    format: "image/png",
+    width: 290,
+    height: 70,
+  };
+  // }
   console.log({ invoice });
   var valueItem = [
     {
       valueText: invoice.subtotalText,
-      value: "$" + invoice.subtotal,
+      value: "QR " + invoice.subtotal,
     },
   ];
   if (invoice.tax != 0) {
@@ -41,19 +39,19 @@ report.generateStaticDoc = async (id, invoice, callback) => {
   if (invoice.shipping != 0) {
     valueItem.push({
       valueText: invoice.shippingText,
-      value: "$" + invoice.shipping,
+      value: "QR " + invoice.shipping,
     });
   }
   if (invoice.total != 0) {
     valueItem.push({
       valueText: invoice.totalText,
-      value: "$" + invoice.total,
+      value: "QR " + invoice.total,
     });
   }
   if (invoice.amountPaid != 0) {
     valueItem.push({
       valueText: invoice.amountPaidText,
-      value: "$" + invoice.amountPaid,
+      value: "QR " + invoice.amountPaid,
     });
   }
   invoice["valueItem"] = valueItem;
@@ -95,7 +93,7 @@ report.generateStaticDoc = async (id, invoice, callback) => {
   // Convert it to pdf format with undefined filter (see Libreoffice doc about filter)
   // libre.convert(enterPath, extend, undefined, (err, done) => {
   //   if (err) {
-  //     console.log(`Error converting file: ${err}`);
+  //     console.log(`Error converting file: QR {err}`);
   //   }
   //   // Here in done you have pdf file which you can save or transfer in another stream
   //   fs.writeFileSync(outputPath, done);
