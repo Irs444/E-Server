@@ -7,6 +7,7 @@ var mongoose = require("mongoose");
 var Session = mongoose.model("session");
 // var User = mongoose.model("user");
 var Invoice = mongoose.model("invoice");
+var InvoiceNumber = mongoose.model("invoice_number");
 // var _ = require("lodash");
 var mkdirp = require("mkdirp");
 // const word2pdf = require("word2pdf-promises");
@@ -63,6 +64,9 @@ Routings/controller goes here
 */
 module.exports.controller = function(router) {
   router
+    .route("/invoice/number")
+    .get(session.checkToken, methods.getInvoiceNumber);
+  router
     .route("/invoice")
     .get(session.checkToken, methods.getInvoice)
     .post(session.checkToken, methods.generateDocReportv2);
@@ -93,6 +97,17 @@ module.exports.controller = function(router) {
       excelfile,
       enterPath: sample + "/invoice_doc.docx",
     });
+    var docxConverter = require("docx-pdf");
+
+    docxConverter(path.resolve(sample, "invoice_doc.docx"), excelfile, function(
+      err,
+      result
+    ) {
+      if (err) {
+        console.log(err);
+      }
+      console.log("result" + result);
+    });
     // Read file
     // var content = fs.readFileSync(sample, "/invoice_doc.docx");
     // const file = fs.readFileSync(sample, "/invoice_doc.docx");
@@ -104,18 +119,18 @@ module.exports.controller = function(router) {
     //   // Here in done you have pdf file which you can save or transfer in another stream
     //   fs.writeFileSync(excelfile, done);
     // });
-    carbone.render(
-      path.resolve(sample, "invoice_doc.docx"),
-      {},
-      { convertTo: "pdf" },
-      function(err, result) {
-        if (err) {
-          return console.log("error----------------", { err });
-        }
-        // write the result
-        fs.writeFileSync(excelfile, result);
-      }
-    );
+    // carbone.render(
+    //   path.resolve(sample, "invoice_doc.docx"),
+    //   {},
+    //   { convertTo: "pdf" },
+    //   function(err, result) {
+    //     if (err) {
+    //       return console.log("error----------------", { err });
+    //     }
+    //     // write the result
+    //     fs.writeFileSync(excelfile, result);
+    //   }
+    // );
   });
 };
 
@@ -123,6 +138,73 @@ module.exports.controller = function(router) {
 ***   get list of invoices  ***
 =======================================*/
 
+methods.getInvoiceNumber = async (req, res) => {
+  InvoiceNumber.findOne({})
+    .lean()
+    .exec((err, invoiceNumber) => {
+      console.log({ invoiceNumber });
+      if (err) {
+        //send response to client
+        response.error = true;
+        response.status = 500;
+        response.errors = err;
+        response.data = null;
+        response.memberMessage = "Some server error has occurred.";
+        return SendResponse(res);
+      } else if (invoiceNumber) {
+        //send response to client
+        // invoiceNumber.invoice = invoiceNumber.invoice + 1;
+        InvoiceNumber.findOneAndUpdate(
+          {
+            _id: invoiceNumber._id,
+          },
+          {
+            invoice: invoiceNumber.invoice + 1,
+          },
+          { new: true }
+        ).exec((err, invoiceNumber) => {
+          if (err) {
+            //send response to client
+            response.error = true;
+            response.status = 500;
+            response.errors = err;
+            response.memberMessage = "Some server error has occurred.";
+            response.data = null;
+            return SendResponse(res);
+          } else {
+            response.error = false;
+            response.status = 200;
+            response.errors = null;
+            response.data = invoiceNumber;
+            response.memberMessage = "Fetched successfully.";
+            return SendResponse(res);
+          }
+        });
+      } else {
+        invoiceNumber = new InvoiceNumber({
+          invoice: 100,
+        });
+        invoiceNumber.save((err) => {
+          if (err) {
+            //send response to client
+            response.error = true;
+            response.status = 500;
+            response.errors = err;
+            response.memberMessage = "Some server error has occurred.";
+            response.data = null;
+            return SendResponse(res);
+          } else {
+            response.error = false;
+            response.status = 200;
+            response.errors = null;
+            response.data = invoiceNumber;
+            response.memberMessage = "Fetched successfully.";
+            return SendResponse(res);
+          }
+        });
+      }
+    });
+};
 methods.getInvoice = async (req, res) => {
   if (req.query.invoiceId) {
     Invoice.findOne({ _id: req.query.invoiceId })

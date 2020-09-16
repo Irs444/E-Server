@@ -182,4 +182,11 @@ var Invoice = new Schema({
     },
   ],
 });
+var InvoiceNumber = new Schema({
+  invoice: {
+    type: Number,
+    default: 100,
+  },
+});
 mongoose.model("invoice", Invoice);
+mongoose.model("invoice_number", InvoiceNumber);
