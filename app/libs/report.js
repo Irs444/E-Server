@@ -151,13 +151,16 @@ report.generateStaticDoc = async (id, invoice, callback) => {
   }
   invoice["valueItem"] = valueItem;
   var infoInvoiceItems = [];
+  var count = 1;
   for (let i = 0; i < invoice.infoInvoiceItems.length; i++) {
     infoInvoiceItems.push({
+      itemIndex: count,
       item: invoice.infoInvoiceItems[i]["item"],
       quantity: invoice.infoInvoiceItems[i]["quantity"],
       rate: invoice.infoInvoiceItems[i]["rate"],
       amount: invoice.infoInvoiceItems[i]["amount"],
     });
+    count = count + 1;
   }
   var invoiceInfo = {};
   invoiceInfo["image"] = process.env.SAMPLE_URL + "/ATS_Logo.png";
