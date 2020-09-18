@@ -47,6 +47,7 @@ require("./config/routes")(router);
 
 app.use("/api", router);
 app.use("/media", express.static("media"));
+app.use("/sample", express.static("public/sample"));
 
 var server = app.listen(port);
 
