@@ -36,6 +36,7 @@
     "node-excel-to-json": "0.0.3",
     "node-rsa": "^1.0.6",
     "nodemailer": "^6.4.11",
+    "pdf-creator-node": "^1.4.1",
     "randomstring": "^1.1.5",
     "request": "^2.86.0",
     "shortid": "^2.2.8",

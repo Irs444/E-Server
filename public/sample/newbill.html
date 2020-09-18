@@ -1,0 +1,223 @@
+<html>
+  <head>
+    <title>ATS Billing</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+
+  <body style="width: 95%;  padding: 0 2%; ">
+    <!-- <div class="container py-2" >style=" margin: 10px 10%; padding: 10px 5%;" -->
+    <table class="table table-striped" style="width: 100%;">
+      <thead style="    font-size: 12px;">
+        <tr>
+          <th
+            style="    width: 45%;  border: unset; font-weight: 600; text-align: left;"
+          >
+            <img src="{{image}}" width="276" />
+          </th>
+          <th style="    width: 55%; text-align: right; border: unset;  ">
+            <div class="col-sm-12" style="text-align: right;">
+              <label style="font-size: 3rem; font-weight: 600;"
+                >{{invoice}}</label
+              >
+              <br />
+              <p style="font-size: 14px; padding: 7px;">#{{invoiceNumber}}</p>
+            </div>
+          </th>
+        </tr>
+      </thead>
+    </table>
+    <table class="table table-striped" style="width: 100%;">
+      <thead class="text-center" style="    font-size: 12px;">
+        <tr>
+          <th style="    width: 65%;   border: unset;  ">
+            <table class="table table-striped" style="width: 100%;">
+              <thead class="text-center" style="    font-size: 12px;">
+                <tr>
+                  <th
+                    style="    width: 100%; text-align: left; border: unset;  "
+                  >
+                    <div class="col-sm-12" style="width: 100%;  ">
+                      <p>{{invoiceForm}}</p>
+                    </div>
+                  </th>
+                </tr>
+                <tr>
+                  <th
+                    style=" text-align: left;   width: 100%;  border: unset; font-weight: 600;"
+                  >
+                    <table class="table table-striped" style="width: 100%;">
+                      <thead class="text-center" style="    font-size: 12px;">
+                        <tr>
+                          <th
+                            style="    width: 50%; text-align: left; border: unset;  "
+                          >
+                            <label style="font-weight: 500;"
+                              >{{billToText}}</label
+                            >
+                            <br />
+                            <p>{{billTo}}</p>
+                          </th>
+                          <th
+                            style="    width: 50%; text-align: left; border: unset;  "
+                          >
+                            <label style="font-weight: 500;"
+                              >{{shipToText}}</label
+                            >
+                            <br />
+                            <p>{{shipTo}}</p>
+                          </th>
+                        </tr>
+                      </thead>
+                    </table>
+                  </th>
+                </tr>
+              </thead>
+            </table>
+          </th>
+          <th style="    width: 35%;  border: unset; font-weight: 600;">
+            <table class="table table-striped" style="width: 100%;">
+              <thead class="text-center" style="    font-size: 12px;">
+                <tr>
+                  <th
+                    style="    width: 55%; text-align: right; border: unset; font-weight: 600;     padding: 5px;"
+                  >
+                    {{billDateText}}:
+                  </th>
+                  <th
+                    style="    width: 45%; text-align: right; border: unset; font-weight: 500;     padding: 5px;"
+                  >
+                    {{billDate}}
+                  </th>
+                </tr>
+                <tr>
+                  <th
+                    style="    width: 55%; text-align: right; border: unset; font-weight: 600;     padding: 5px;"
+                  >
+                    {{paymentTermsText}}:
+                  </th>
+                  <th
+                    style="    width: 45%; text-align: right; border: unset; font-weight: 500;     padding: 5px;"
+                  >
+                    {{paymentTerms}}
+                  </th>
+                </tr>
+                <tr>
+                  <th
+                    style="    width: 55%; text-align: right; border: unset; font-weight: 600;     padding: 5px;"
+                  >
+                    {{dueDateText}}:
+                  </th>
+                  <th
+                    style="    width: 45%; text-align: right; border: unset; font-weight: 500;     padding: 5px;"
+                  >
+                    {{dueDate}}
+                  </th>
+                </tr>
+              </thead>
+            </table>
+            <table
+              class="table table-striped"
+              style="width: 100%; background: #c1c1c1;     padding: 5px;"
+            >
+              <thead class="text-center" style="background: #c1c1c1;">
+                <tr>
+                  <th
+                    style="    width: 40%; text-align: right; border: unset; font-weight: 600;"
+                  >
+                    {{balanceDueText}}
+                  </th>
+                  <th
+                    style="    width: 60%; text-align: right; border: unset; font-weight: 500;"
+                  >
+                    QR {{balanceDue}}
+                  </th>
+                </tr>
+              </thead>
+            </table>
+          </th>
+        </tr>
+      </thead>
+    </table>
+
+    <table
+      class="table table-striped"
+      style="width: 100% ; background: #000;     padding: 5px 10px;  border-radius: 5px;     margin-top: 10px;"
+    >
+      <thead class="text-center" style="    background: #000; color: #fff;">
+        <th style="text-align: left;     font-weight: 500;">{{itemText}}</th>
+        <th style="width: 190px;  text-align: right;   font-weight: 500;">
+          <!-- Unit Price -->{{rateText}}
+        </th>
+        <th style="width: 160px;  text-align: right;   font-weight: 500;">
+          <!-- Quantity -->{{quantityText}}
+        </th>
+        <th style="width: 190px;  text-align: right;   font-weight: 500;">
+          <!-- Amount -->{{amountText}}
+        </th>
+      </thead>
+    </table>
+    <table
+      class="table table-striped"
+      style="width: 100%;     padding: 5px 10px;"
+    >
+      <tbody>
+        {{#each infoInvoiceItems}}
+        <tr style="background: #fff;">
+          <td style="    font-weight: 500;">{{this.item}}</td>
+          <td style="width: 190px; text-align: right;     font-weight: 500;">
+            QR {{this.rate}}
+          </td>
+          <td style="width: 160px; text-align: right;     font-weight: 500;">
+            {{this.quantity}}
+          </td>
+          <td style="width: 190px; text-align: right;     font-weight: 500;">
+            QR {{this.amount}}
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+
+      <tbody></tbody>
+    </table>
+
+    <table
+      class="table table-striped"
+      style="width: 100%;     margin-top: 10px;"
+    >
+      <thead class="text-center" style="    font-size: 12px;">
+        <tr>
+          <th style="    width: 65%; text-align: left;  border: unset;  ">
+            <label style="font-weight: 500;">Notes:</label>
+            <br />
+            <p>{{notes}}</p>
+            <br />
+            <label style="font-weight: 500;">Terms:</label>
+            <br />
+            <p>{{terms}}</p>
+          </th>
+          <th style="    width: 35%;   border: unset;  ">
+            <table class="table table-striped" style="width: 100%;">
+              <thead class="text-center" style="    font-size: 12px;">
+                {{#each valueItem}}
+                <tr>
+                  <th
+                    style="    width: 55%; text-align: right; border: unset; font-weight: 600;  padding: 5px;"
+                  >
+                    {{this.valueText}}
+                  </th>
+                  <th
+                    style="    width: 45%; text-align: right; border: unset; font-weight: 600;  padding: 5px;"
+                  >
+                    {{this.value}}
+                  </th>
+                </tr>
+                {{/each}}
+              </thead>
+            </table>
+          </th>
+        </tr>
+      </thead>
+    </table>
+  </body>
+</html>
