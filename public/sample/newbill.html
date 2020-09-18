@@ -59,7 +59,7 @@
                             style="    width: 50%; text-align: left; border: unset;  "
                           >
                             <label style="font-weight: 500;"
-                              >{{billToText}}</label
+                              >{{billToText}}:</label
                             >
                             <br />
                             <p>{{billTo}}</p>
@@ -68,7 +68,7 @@
                             style="    width: 50%; text-align: left; border: unset;  "
                           >
                             <label style="font-weight: 500;"
-                              >{{shipToText}}</label
+                              >{{shipToText}}:</label
                             >
                             <br />
                             <p>{{shipTo}}</p>
@@ -106,7 +106,7 @@
                     {{paymentTermsText}}:
                   </th>
                   <th
-                    style="    width: 45%; text-align: right; border: unset; font-weight: 500;     padding: 5px;"
+                    style="    width: 45%; text-align: left; border: unset; font-weight: 500;     padding: 5px;"
                   >
                     {{paymentTerms}}
                   </th>
@@ -134,10 +134,10 @@
                   <th
                     style="    width: 40%; text-align: right; border: unset; font-weight: 600;"
                   >
-                    {{balanceDueText}}
+                    {{balanceDueText}}:
                   </th>
                   <th
-                    style="    width: 60%; text-align: right; border: unset; font-weight: 500;"
+                    style="    width: 60%; text-align: right; border: unset; font-weight: 600;"
                   >
                     QR {{balanceDue}}
                   </th>
@@ -155,13 +155,13 @@
     >
       <thead class="text-center" style="    background: #000; color: #fff;">
         <th style="text-align: left;     font-weight: 500;">{{itemText}}</th>
-        <th style="width: 190px;  text-align: right;   font-weight: 500;">
+        <th style="width: 90px;  text-align: right;   font-weight: 500;">
           <!-- Unit Price -->{{rateText}}
         </th>
-        <th style="width: 160px;  text-align: right;   font-weight: 500;">
+        <th style="width: 80px;  text-align: right;   font-weight: 500;">
           <!-- Quantity -->{{quantityText}}
         </th>
-        <th style="width: 190px;  text-align: right;   font-weight: 500;">
+        <th style="width: 90px;  text-align: right;   font-weight: 500;">
           <!-- Amount -->{{amountText}}
         </th>
       </thead>
@@ -216,7 +216,7 @@
                   <th
                     style="    width: 55%; text-align: right; border: unset; font-weight: 600;  padding: 5px;"
                   >
-                    {{this.valueText}}
+                    {{this.valueText}}:
                   </th>
                   <th
                     style="    width: 45%; text-align: right; border: unset; font-weight: 600;  padding: 5px;"
