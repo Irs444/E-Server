@@ -745,8 +745,8 @@ methods.createMember = (req, res) => {
               product: {
                 // Appears in header & footer of e-mails
                 name: "Arab Tech Store",
-                link: process.env.HOME_SITE_DOMAIN,
-                logo: `${process.env.SITE_DOMAIN}/image/text_logo.png`,
+                link: "http://admin.arabtechstore.com",
+                logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
               },
             });
 
@@ -759,13 +759,13 @@ methods.createMember = (req, res) => {
                 action: {
                   instructions: `To get started with Arab Tech Store use this email ${req.body.email} and password ${oneTimePassword}, please click here:`,
                   button: {
-                    color: "#22BC66", // Optional action button color
+                    color: "#002b7a", // Optional action button color
                     text: "Go to Dasboard",
                     link: `http://admin.arabtechstore.com`,
                   },
                 },
                 outro:
-                  "Need help, or have questions? Just mail us to support@arabtechstore.com, we'd be happy to help.",
+                  "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
               },
             };
             // Generate an HTML email with the provided contents

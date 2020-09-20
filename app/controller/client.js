@@ -11,6 +11,8 @@ const aesWrapper = require("../libs/aes-wrapper");
 const async = require("async");
 const moment = require("moment");
 
+var mail = require("../libs/mail");
+var Mailgen = require("mailgen");
 /* the response object for API
    error : true / false 
    code : contains any error code
@@ -205,6 +207,14 @@ methods.createClient = (req, res) => {
     return SendResponse(res, 400);
   } else {
     //Database functions here
+    /**
+     * Hello Name_of_Customer
+
+We have received your enquiry. We will contact you within next 24 hours.
+
+Thanking your,
+Arab Tech Store*
+     */
     Client.findOne({
       email: req.body.email,
     }).exec((err, client) => {
@@ -217,50 +227,94 @@ methods.createClient = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (client) {
-        //send response to client
-        client.name = req.body.name;
-        client.email = req.body.email;
-        client.contactNumber = req.body.contactNumber;
-        // client.quantity = req.body.quantity;
-        client.country = req.body.country;
-        // client.productId = req.body.productId;
-        client.save((err) => {
-          if (err) {
-            //send response to client
-            response.error = true;
-            response.status = 500;
-            response.errors = err;
-            response.data = null;
-            response.memberMessage = "Some server error has occurred.";
-            return SendResponse(res);
-          } else {
-            var enquiry = new Enquiry({
-              clientId: client._id,
-              quantity: req.body.quantity,
-              productId: req.body.productId,
-              message: req.body.message,
-            });
-            enquiry.save((err) => {
-              if (err) {
-                //send response to client
-                response.error = true;
-                response.status = 500;
-                response.errors = err;
-                response.data = null;
-                response.memberMessage = "Some server error has occurred.";
-                return SendResponse(res);
-              } else {
-                //send response to client
-                response.error = false;
-                response.status = 200;
-                response.errors = null;
-                response.data = null;
-                response.memberMessage = "Request send successfully.";
-                return SendResponse(res);
-              }
-            });
-          }
-        });
+        if (!client.isApproved) {
+          response.error = false;
+          response.status = 200;
+          response.errors = null;
+          response.data = null;
+          response.memberMessage = "Request send successfully.";
+          return SendResponse(res);
+        } else {
+          //send response to client
+          client.name = req.body.name;
+          client.email = req.body.email;
+          client.contactNumber = req.body.contactNumber;
+          // client.quantity = req.body.quantity;
+          client.country = req.body.country;
+          // client.productId = req.body.productId;
+          client.save((err) => {
+            if (err) {
+              //send response to client
+              response.error = true;
+              response.status = 500;
+              response.errors = err;
+              response.data = null;
+              response.memberMessage = "Some server error has occurred.";
+              return SendResponse(res);
+            } else {
+              var enquiry = new Enquiry({
+                clientId: client._id,
+                quantity: req.body.quantity,
+                productId: req.body.productId,
+                message: req.body.message,
+              });
+              enquiry.save((err) => {
+                if (err) {
+                  //send response to client
+                  response.error = true;
+                  response.status = 500;
+                  response.errors = err;
+                  response.data = null;
+                  response.memberMessage = "Some server error has occurred.";
+                  return SendResponse(res);
+                } else {
+                  //send response to client
+                  var mailGenerator = new Mailgen({
+                    theme: "salted",
+                    product: {
+                      // Appears in header & footer of e-mails
+                      name: "Arab Tech Store",
+                      link: "http://arabtechstore.com",
+                      logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
+                    },
+                  });
+
+                  var email = {
+                    body: {
+                      name: req.body.name,
+                      link: ` `,
+                      intro:
+                        "We have received your enquiry. We will contact you within next 24 hours.",
+                      action: {
+                        instructions: "", // `To get started with Arab Tech Store use this email ${req.body.email} and password ${oneTimePassword}, please click here:`,
+                        button: {
+                          color: "#002b7a", // Optional action button color
+                          text: "Go to Website",
+                          link: `http://arabtechstore.com`,
+                        },
+                      },
+                      outro:
+                        "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
+                    },
+                  };
+                  // Generate an HTML email with the provided contents
+                  var emailBody = mailGenerator.generate(email);
+                  mail.sendMail(
+                    req.body.email,
+                    "Welcome to Arab Tech Store",
+                    emailBody
+                  );
+                  response.error = false;
+                  response.status = 200;
+                  response.errors = null;
+                  response.data = null;
+                  response.memberMessage = "Request send successfully.";
+                  return SendResponse(res);
+                }
+              });
+            }
+          });
+        }
       } else {
         var client = new Client({
           ...req.body,
@@ -292,6 +346,41 @@ methods.createClient = (req, res) => {
                 return SendResponse(res);
               } else {
                 //send response to client
+                var mailGenerator = new Mailgen({
+                  theme: "salted",
+                  product: {
+                    // Appears in header & footer of e-mails
+                    name: "Arab Tech Store",
+                    link: "http://arabtechstore.com",
+                    logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
+                  },
+                });
+
+                var email = {
+                  body: {
+                    name: req.body.name,
+                    link: ` `,
+                    intro:
+                      "We have received your enquiry. We will contact you within next 24 hours.",
+                    action: {
+                      instructions: "", // `To get started with Arab Tech Store use this email ${req.body.email} and password ${oneTimePassword}, please click here:`,
+                      button: {
+                        color: "#002b7a", // Optional action button color
+                        text: "Go to Website",
+                        link: `http://arabtechstore.com`,
+                      },
+                    },
+                    outro:
+                      "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
+                  },
+                };
+                // Generate an HTML email with the provided contents
+                var emailBody = mailGenerator.generate(email);
+                mail.sendMail(
+                  req.body.email,
+                  "Welcome to Arab Tech Store",
+                  emailBody
+                );
                 response.error = false;
                 response.status = 200;
                 response.errors = null;
