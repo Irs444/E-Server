@@ -518,7 +518,7 @@ methods.getClients = async (req, res) => {
     if (query["$and"] && query["$and"].length == 0) {
       delete query["$and"];
     }
-    console.log({ query }, query["$and"]);
+    console.log({ query }, query["$and"], "--------");
     var limit = req.query.limit ? parseInt(req.query.limit) : 10;
     var page = req.query.page ? parseInt(req.query.page) : 0;
     Client.find(query)
