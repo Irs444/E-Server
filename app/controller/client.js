@@ -282,9 +282,9 @@ Arab Tech Store*
           //send response to client
           client.name = req.body.name;
           client.email = req.body.email;
-          client.contactNumber = req.body.contactNumber;
+          client.contactNumber = req.body.contactNumber || client.contactNumber;
           // client.quantity = req.body.quantity;
-          client.country = req.body.country;
+          client.country = req.body.country || client.country;
           // client.productId = req.body.productId;
           client.save((err) => {
             if (err) {
