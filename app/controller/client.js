@@ -474,7 +474,6 @@ methods.getClients = async (req, res) => {
   } else {
     var query = {
       active: true,
-      contactUs: false,
     };
     if (req.query.clientStatus && req.query.clientStatus != "all") {
       query.isApproved = req.query.clientStatus === "approved" ? true : false;
@@ -597,6 +596,7 @@ methods.getClientEnquiries = async (req, res) => {
   } else {
     var query = {
       active: true,
+      contactUs: { $eq: req.query.contactUs ? req.query.contactUs : false },
     };
     if (req.query.clientId) {
       query.clientId = req.query.clientId;
