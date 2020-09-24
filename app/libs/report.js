@@ -227,9 +227,7 @@ report.generateStaticDoc = async (id, invoice, callback) => {
     // },
     footer: {
       height: "28mm",
-      contents: {
-        default: `<span style="color: #000;  width: 100%;    text-align: center;">Invoice - system generated invoice doesn't require any signature.</span>`, // fallback value
-      },
+      contents: `<span style="color: #000;  width: 100%;  font-size: 8px; border-top: 3px solid #000;   text-align: center; ">Invoice - System Generated. Invoice doesn't require any signature.</span>`, // fallback value
     },
   };
   var users = [
