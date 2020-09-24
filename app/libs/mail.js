@@ -3,7 +3,7 @@ var mail = {};
 
 mail.sendMail = function(to, subject, body, sender) {
   // return this.send(to, subject, sender || "no-reply@ohphish.com", body);
-  // console.log({ to, subject, body, sender });
+  console.log({ to, subject });
   // button is not displayed
   /**
    * salescoordinator@arabtechstore.com
@@ -17,13 +17,15 @@ http://mail.cloudwebmail.net/
     secure: true,
     auth: {
       user: "salescoordinator@arabtechstore.com",
-      pass: "zG&LYE4dp?LA]rJ",
+      pass: "otp@2020",
+      // pass: "zG&LYE4dp?LA]rJ",
+      // pass: "zG%26LYE4dp%3FLA%5DrJ",
     },
     logger: true,
-    // requireTLS: true, //Force TLS
-    // tls: {
-    //   rejectUnauthorized: false,
-    // },
+    requireTLS: true, //Force TLS
+    tls: {
+      rejectUnauthorized: false,
+    },
   };
 
   // var connection = {
@@ -46,7 +48,7 @@ http://mail.cloudwebmail.net/
   // setup e-mail data
   var mailOptions = {
     //Specify email data
-    from: "salescoordinator@arabtechstore.com", //<amitchauhan7890@gmail.com>",
+    from: "Arab Tech Store <salescoordinator@arabtechstore.com>", //<amitchauhan7890@gmail.com>",
     //The email to contact
     to: to,
     //Subject and text data
