@@ -164,6 +164,7 @@ report.generateStaticDoc = async (id, invoice, callback) => {
   }
   var invoiceInfo = {};
   invoiceInfo["image"] = process.env.SAMPLE_URL + "/ATS_Logo.png";
+  invoiceInfo["imageSeal"] = process.env.SAMPLE_URL + "/ATS_Seal.png";
   invoiceInfo["valueItem"] = valueItem;
   invoiceInfo["invoice"] = invoice.invoice;
   invoiceInfo["invoiceNumber"] = invoice.invoiceNumber;
@@ -213,7 +214,7 @@ report.generateStaticDoc = async (id, invoice, callback) => {
     // header: {
     //   height: "45mm",
     //   contents: '<div style="text-align: center;">Author: Shyam Hajare</div>',
-    // },
+    // },//Invoice - system generated invoice doesn't require any signature.
     // footer: {
     //   height: "28mm",
     //   contents: {
@@ -224,6 +225,12 @@ report.generateStaticDoc = async (id, invoice, callback) => {
     //     last: "Last Page",
     //   },
     // },
+    footer: {
+      height: "28mm",
+      contents: {
+        default: `<span style="color: #000;  width: 100%;    text-align: center;">Invoice - system generated invoice doesn't require any signature.</span>`, // fallback value
+      },
+    },
   };
   var users = [
     {
@@ -239,7 +246,7 @@ report.generateStaticDoc = async (id, invoice, callback) => {
       age: "26",
     },
   ];
-  console.log("---------", { image: invoiceInfo.image }, "-----");
+  console.log("---------", { imageSeal: invoiceInfo.imageSeal }, "-----");
   // var html = fs.readFileSync("template.html", "utf8");
   var html = fs.readFileSync(path.resolve(sample, "newbill.html"), "utf8");
   var createDocxPath =
