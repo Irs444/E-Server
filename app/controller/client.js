@@ -144,8 +144,8 @@ methods.clientContactUs = (req, res) => {
         //send response to client
         client.name = req.body.name;
         client.email = req.body.email;
-        client.contactNumber = req.body.contactNumber;
-        client.country = req.body.country;
+        // client.contactNumber = req.body.contactNumber;
+        // client.country = req.body.country;
         client.save((err) => {
           if (err) {
             //send response to client
@@ -173,6 +173,42 @@ methods.clientContactUs = (req, res) => {
                 return SendResponse(res);
               } else {
                 //send response to client
+                //send response to client
+                var mailGenerator = new Mailgen({
+                  theme: "salted",
+                  product: {
+                    // Appears in header & footer of e-mails
+                    name: "Arab Tech Store",
+                    link: "http://arabtechstore.com",
+                    logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
+                  },
+                });
+
+                var email = {
+                  body: {
+                    name: req.body.name,
+                    link: ` `,
+                    intro:
+                      "We have received your enquiry. We will contact you within next 24 hours.",
+                    action: {
+                      instructions: "", // `To get started with Arab Tech Store use this email ${req.body.email} and password ${oneTimePassword}, please click here:`,
+                      button: {
+                        color: "#002b7a", // Optional action button color
+                        text: "Go to Website",
+                        link: `http://arabtechstore.com`,
+                      },
+                    },
+                    outro:
+                      "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
+                  },
+                };
+                // Generate an HTML email with the provided contents
+                var emailBody = mailGenerator.generate(email);
+                mail.sendMail(
+                  req.body.email,
+                  "Welcome to Arab Tech Store",
+                  emailBody
+                );
                 response.error = false;
                 response.status = 200;
                 response.errors = null;
@@ -213,6 +249,42 @@ methods.clientContactUs = (req, res) => {
                 response.memberMessage = "Some server error has occurred.";
                 return SendResponse(res);
               } else {
+                //send response to client
+                var mailGenerator = new Mailgen({
+                  theme: "salted",
+                  product: {
+                    // Appears in header & footer of e-mails
+                    name: "Arab Tech Store",
+                    link: "http://arabtechstore.com",
+                    logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
+                  },
+                });
+
+                var email = {
+                  body: {
+                    name: req.body.name,
+                    link: ` `,
+                    intro:
+                      "We have received your enquiry. We will contact you within next 24 hours.",
+                    action: {
+                      instructions: "", // `To get started with Arab Tech Store use this email ${req.body.email} and password ${oneTimePassword}, please click here:`,
+                      button: {
+                        color: "#002b7a", // Optional action button color
+                        text: "Go to Website",
+                        link: `http://arabtechstore.com`,
+                      },
+                    },
+                    outro:
+                      "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
+                  },
+                };
+                // Generate an HTML email with the provided contents
+                var emailBody = mailGenerator.generate(email);
+                mail.sendMail(
+                  req.body.email,
+                  "Welcome to Arab Tech Store",
+                  emailBody
+                );
                 //send response to client
                 response.error = false;
                 response.status = 200;
