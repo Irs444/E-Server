@@ -233,9 +233,9 @@ report.generateStaticDoc = async (id, invoice, callback) => {
         <thead>
           <tr>
             <th
-              style="     width: 100%;  border-top: 3px solid #000; font-weight: 600; text-align: left;"
+              style=" width: 100%;  border-top: 3px solid #000; font-weight: 600; text-align: center;"
             >
-            <span style="color: #000;  width: 100%;  font-size: 8px;    text-align: center; ">Invoice - System Generated. Invoice doesn't require any signature.</span>
+              <p style="color: #000;  width: 100%;  font-size: 8px;    text-align: center; ">Invoice - System Generated. Invoice doesn't require any signature.</p>
             </th>
           </tr>
         </thead>
