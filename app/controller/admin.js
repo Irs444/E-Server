@@ -17,7 +17,14 @@ console.log(
 );
 
 Dealer.findOne({
-  contactNumber: process.env.DEFAULT_MEMBER_CONTACT,
+  $or: [
+    {
+      contactNumber: process.env.DEFAULT_MEMBER_CONTACT,
+    },
+    {
+      email: process.env.DEFAULT_MEMBER,
+    },
+  ],
 }).exec((err, dealer) => {
   if (!err && !dealer) {
     var newDealer = new Dealer({
@@ -52,6 +59,23 @@ Dealer.findOne({
             );
           }
         });
+      }
+    });
+  } else if (dealer) {
+    StaffMember.findOne({
+      email: process.env.DEFAULT_MEMBER,
+    }).exec((err, staffMember) => {
+      console.log("-----------admin---", { staffMember });
+      if (!err && !staffMember) {
+        new StaffMember({
+          name: "Super Admin",
+          email: process.env.DEFAULT_MEMBER,
+          accessLevel: 1,
+          dealerId: dealer._id,
+          password: cryptography.encrypt(process.env.DEFAULT_PASSWORD),
+        }).save((err) =>
+          console.log("error while creating default staffMember ", err)
+        );
       }
     });
   }
@@ -195,7 +219,7 @@ methods.adminLogin = function(req, res) {
               } else {
                 //send response to client
 
-                Enquiry.find({ active: true })
+                Enquiry.find({ active: true, contactUs: false })
                   .populate("productId")
                   .populate("clientId")
                   .populate("staffMemberId", "name profilePicUrl")
