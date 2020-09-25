@@ -132,7 +132,7 @@ var product = new Schema({
   },
   public: {
     type: Boolean,
-    default: false, //inActive
+    default: true, //inActive
     enum: [false, true],
   },
 });
@@ -187,7 +187,7 @@ var brand = new Schema({
   },
   public: {
     type: Boolean,
-    default: false, //inActive
+    default: true, //inActive
     enum: [false, true],
   },
 });
@@ -249,7 +249,7 @@ var Category = new Schema({
   },
   public: {
     type: Boolean,
-    default: false, //inActive
+    default: true, //inActive
     enum: [false, true],
   },
 });
@@ -297,7 +297,7 @@ var BannerImage = new Schema({
   },
   public: {
     type: Boolean,
-    default: false, //inActive
+    default: true, //inActive
     enum: [false, true],
   },
 });
