@@ -497,6 +497,7 @@ methods.getStaffMembers = (req, res) => {
   // StaffMember.find({ accessLevel: 3 }, { _id: 1, name: 1, contactNumber: 1, imeiNumber: 1, createdAt: 1, isSubscribe: 1, accessLevel: 1, organizationId: 1, avatar: 1 })
   var query = {
     _id: { $ne: req.staffMember._id },
+    accessLevel: { $ne: 1 },
     // active: req.query.staffMemberStatus == "deactivated" ? false : true,
   };
 
