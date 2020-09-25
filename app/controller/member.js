@@ -52,7 +52,7 @@ module.exports.controller = function(router) {
   router.route("/ping").get(session.checkToken, function(req, res) {
     //send response to client
 
-    Enquiry.find({ active: true })
+    Enquiry.find({ active: true, contactUs: false })
       .populate("productId")
       .populate("clientId")
       .populate("staffMemberId", "name profilePicUrl")
