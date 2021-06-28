@@ -46,6 +46,30 @@ var SendResponse = function(res, status) {
   NullResponseValue();
   return;
 };
+var chunkArray = function(inputArray) {
+  var perChunk = 2; // items per chunk
+
+  // var inputArray = ["a", "b", "c", "d", "e"];
+  var result = [];
+  if (inputArray.length > 9) {
+    perChunk = inputArray.length / 2;
+    result = inputArray.reduce((resultArray, item, index) => {
+      const chunkIndex = Math.floor(index / perChunk);
+
+      if (!resultArray[chunkIndex]) {
+        resultArray[chunkIndex] = []; // start a new chunk
+      }
+
+      resultArray[chunkIndex].push(item);
+
+      return resultArray;
+    }, []);
+  } else {
+    result.push(inputArray);
+  }
+  console.log(result); // result: [['a','b'], ['c','d'], ['e']]
+  return result;
+};
 
 var methods = {};
 
@@ -54,6 +78,8 @@ var methods = {};
  */
 module.exports.controller = function(router) {
   router.route("/home/header").get(methods.getHeaderInfo);
+  router.route("/home").get(methods.getHomeInfo);
+  router.route("/common").get(methods.getCommenHeaderInfo);
 };
 
 /*=====================================
@@ -245,10 +271,10 @@ methods.getProducts = async (req, res) => {
   //   });
 };
 
-/*-----  End of getdealers  ------*/
+/*-----  End of getProducts  ------*/
 
 /*=====================================
-***   get list of BrandCategory info  ***
+***   get list of Header info  ***
 =======================================*/
 
 methods.getHeaderInfo = (req, res) => {
@@ -340,4 +366,174 @@ methods.getHeaderInfo = (req, res) => {
   //   });
 };
 
-/*-----  End of getBrandCategoryList  ------*/
+/*-----  End of getHeaderInfo  ------*/
+
+/*=====================================
+***   get list of Header info  ***
+=======================================*/
+
+methods.getHomeInfo = (req, res) => {
+  var query = { active: true, public: true };
+  async.parallel(
+    {
+      categoryList: function(callback) {
+        Category.find(
+          query,
+          "imageUrl name public sKeyword  sTitle sUrl shortDescription"
+        )
+          .sort({
+            name: 1,
+          })
+          .lean()
+          .exec(callback);
+      },
+      brandList: function(callback) {
+        Brand.find(
+          query,
+          "imageUrl name public sKeyword  sTitle sUrl shortDescription"
+        )
+          .sort({
+            name: 1,
+          })
+          .lean()
+          .exec(callback);
+      },
+      bannerList: function(callback) {
+        BannerImage.find(
+          query,
+          "imageUrl name public sKeyword  sTitle sUrl shortDescription"
+        )
+          .populate(
+            "productId",
+            "imageUrl name public sKeyword  sTitle sUrl shortDescription"
+          )
+          .sort({
+            title: 1,
+          })
+          .lean()
+          .exec(callback);
+      },
+      productList: function(callback) {
+        Product.find(query)
+          .populate(
+            "brandId",
+            "imageUrl name public sKeyword  sTitle sUrl shortDescription"
+          )
+          .populate(
+            "categoryId",
+            "imageUrl name public sKeyword  sTitle sUrl shortDescription"
+          )
+          .sort({
+            createdAt: -1,
+          })
+          .limit(10)
+          .lean()
+          .exec(callback);
+      },
+    },
+    function(err, results) {
+      if (err) {
+        //send response to client
+        response.error = true;
+        response.status = 500;
+        response.errors = err;
+        response.memberMessage = "Some server error has occurred.";
+        response.data = null;
+        return SendResponse(res);
+      } else {
+        //send response to client
+        response.error = false;
+        response.status = 200;
+        response.errors = null;
+        response.brandList = results.brandList;
+        response.categoryList = results.categoryList;
+        response.bannerList = results.bannerList;
+        response.productList = results.productList;
+        return SendResponse(res);
+      }
+    }
+  );
+};
+
+/*-----  End of getHeaderInfo  ------*/
+/*=====================================
+***   get list of Header info  ***
+=======================================*/
+
+methods.getCommenHeaderInfo = (req, res) => {
+  var query = { active: true, public: true };
+  async.parallel(
+    {
+      categoryList: function(callback) {
+        Category.find(
+          query,
+          "imageUrl name public sKeyword  sTitle sUrl shortDescription"
+        )
+          .sort({
+            name: 1,
+          })
+          .lean()
+          .exec(callback);
+      },
+      brandList: function(callback) {
+        Brand.find(
+          query,
+          "imageUrl name public sKeyword  sTitle sUrl shortDescription"
+        )
+          .sort({
+            name: 1,
+          })
+          .lean()
+          .exec(callback);
+      },
+    },
+    function(err, results) {
+      if (err) {
+        //send response to client
+        response.error = true;
+        response.status = 500;
+        response.errors = err;
+        response.memberMessage = "Some server error has occurred.";
+        response.data = null;
+        return SendResponse(res);
+      } else {
+        var data = {
+          brands: chunkArray(results.brandList),
+          products: chunkArray(results.categoryList),
+        };
+        //send response to client
+        response.error = false;
+        response.status = 200;
+        response.errors = null;
+        response.data = data;
+        return SendResponse(res);
+      }
+    }
+  );
+  // Brand.find({ query })
+  //   .sort({
+  //     _id: 1,
+  //   })
+  //   .lean()
+  //   .exec((err, brands) => {
+  //     if (err) {
+  //       //send response to client
+  //       response.error = true;
+  //       response.status = 500;
+  //       response.errors = err;
+  //       response.data = null;
+  //       response.memberMessage = "Some server error has occurred.";
+  //       return SendResponse(res);
+  //     } else {
+  //       //send response to client
+  //       response.error = false;
+  //       response.status = 200;
+  //       response.errors = null;
+  //       response.data = brands;
+  //       // response.memberMessage = "List of brands fetched successfully.";
+  //       return SendResponse(res);
+  //     }
+  //   });
+};
+
+/*-----  End of getHeaderInfo  ------*/
