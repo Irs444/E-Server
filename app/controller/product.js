@@ -236,6 +236,14 @@ methods.getSearchClients = async (req, res) => {
   async.parallel(
     {
       products: function(callback) {
+        console.log(
+          {
+            $limit: limit,
+          },
+          {
+            $skip: page * limit,
+          }
+        );
         Product.aggregate([
           {
             $match: { active: true, public: true },
