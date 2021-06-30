@@ -270,10 +270,10 @@ methods.getSearchClients = async (req, res) => {
             $match: query,
           },
           {
-            $limit: limit,
+            $skip: page * limit,
           },
           {
-            $skip: page * limit,
+            $limit: limit,
           },
         ]).exec(callback);
       },
