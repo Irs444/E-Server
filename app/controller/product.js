@@ -261,19 +261,53 @@ methods.getSearchClients = async (req, res) => {
           {
             $match: query,
           },
-          // {
-          //   $limit: limit,
-          // },
-          // {
-          //   $skip: skip * limit,
-          // },
+          {
+            $limit: limit,
+          },
+          {
+            $skip: page * limit,
+          },
         ]).exec(callback);
       },
       totalRecords: function(callback) {
         if (req.query.productId) {
           return callback(null);
         }
-        Product.count(query).exec(callback);
+        Product.aggregate([
+          {
+            $match: { active: true, public: true },
+          },
+          {
+            $lookup: {
+              from: "brands",
+              localField: "brandId",
+              foreignField: "_id",
+              as: "brandId",
+            },
+          },
+          { $unwind: "$brandId" },
+          {
+            $lookup: {
+              from: "categories",
+              localField: "categoryId",
+              foreignField: "_id",
+              as: "categoryId",
+            },
+          },
+          { $unwind: "$categoryId" },
+          {
+            $match: query,
+          },
+          { $group: { _id: null, myCount: { $sum: 1 } } },
+          { $project: { _id: 0 } },
+        ]).exec((err, result) => {
+          if (err) {
+            callback(null, 0);
+          } else {
+            var count = result.length > 0 ? result[0]["myCount"] : 0;
+            callback(null, count);
+          }
+        });
       },
     },
     function(err, results) {
@@ -290,8 +324,6 @@ methods.getSearchClients = async (req, res) => {
         response.error = false;
         response.status = 200;
         response.errors = null;
-        response.brandInfo = results.brandInfo;
-        response.categoryInfo = results.categoryInfo;
         response.data = results.products;
         response.totalRecords = results.totalRecords;
         response.memberMessage = "List of products fetched successfully.";
