@@ -158,7 +158,7 @@ methods.adminLogin = function(req, res) {
       .populate("dealerId")
       .exec(function(err, staffMember) {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -166,7 +166,7 @@ methods.adminLogin = function(req, res) {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else if (!staffMember) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 400;
           response.errors = null;
@@ -178,7 +178,7 @@ methods.adminLogin = function(req, res) {
           if (
             staffMember.password !== cryptography.encrypt(req.body.password)
           ) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 400;
             response.errors = null;
@@ -209,7 +209,7 @@ methods.adminLogin = function(req, res) {
               }
             ).exec((err) => {
               if (err) {
-                //send response to client
+                //send response to user
                 response.error = true;
                 response.status = 500;
                 response.errors = err;
@@ -217,11 +217,11 @@ methods.adminLogin = function(req, res) {
                 response.data = null;
                 return SendResponse(res);
               } else {
-                //send response to client
+                //send response to user
 
                 Enquiry.find({ active: true, contactUs: false })
                   .populate("productId")
-                  .populate("clientId")
+                  .populate("userId")
                   .populate("staffMemberId", "name profilePicUrl")
                   .sort({
                     createdAt: -1,
@@ -230,7 +230,7 @@ methods.adminLogin = function(req, res) {
                   .lean()
                   .exec((err, enquiries) => {
                     if (err) {
-                      //send response to client
+                      //send response to user
                       response.error = false;
                       response.status = 200;
                       response.errors = null;
@@ -293,7 +293,7 @@ methods.createDealer = (req, res) => {
       contactNumber: req.body.contactNumber,
     }).exec((err, dealer) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -301,7 +301,7 @@ methods.createDealer = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (dealer) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -314,7 +314,7 @@ methods.createDealer = (req, res) => {
           contactNumber: req.body.contactNumber,
         }).exec((err, staffMember) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -322,7 +322,7 @@ methods.createDealer = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else if (staffMember) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 400;
             response.errors = null;
@@ -335,7 +335,7 @@ methods.createDealer = (req, res) => {
             });
             dealer.save((err) => {
               if (err) {
-                //send response to client
+                //send response to user
                 response.error = true;
                 response.status = 500;
                 response.errors = err;
@@ -354,7 +354,7 @@ methods.createDealer = (req, res) => {
 
                 staffMember.save((err) => {
                   if (err) {
-                    //send response to client
+                    //send response to user
                     response.error = true;
                     response.status = 500;
                     response.errors = err;
@@ -362,7 +362,7 @@ methods.createDealer = (req, res) => {
                     response.memberMessage = "Some server error has occurred.";
                     return SendResponse(res);
                   } else {
-                    //send response to client
+                    //send response to user
                     response.error = false;
                     response.status = 200;
                     response.errors = null;
@@ -396,7 +396,7 @@ methods.getDealersList = (req, res) => {
     .lean()
     .exec((err, dealers) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -404,7 +404,7 @@ methods.getDealersList = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -476,7 +476,7 @@ methods.getDealers = async (req, res) => {
     .lean()
     .exec((err, dealers) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -486,7 +486,7 @@ methods.getDealers = async (req, res) => {
       } else {
         Dealer.count(query, async function(err, totalRecords) {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -494,7 +494,7 @@ methods.getDealers = async (req, res) => {
             response.data = null;
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             async.mapSeries(
               dealers,
               async function(dealer, next) {
@@ -560,7 +560,7 @@ methods.updateDealer = (req, res) => {
       _id: req.body.dealerId,
     }).exec((err, dealer) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -568,7 +568,7 @@ methods.updateDealer = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (!dealer) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -583,7 +583,7 @@ methods.updateDealer = (req, res) => {
           contactNumber: req.body.contactNumber,
         }).exec((err, existingOrg) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -591,7 +591,7 @@ methods.updateDealer = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else if (existingOrg) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 400;
             response.errors = null;
@@ -607,7 +607,7 @@ methods.updateDealer = (req, res) => {
             dealer.contactNumber = req.body.contactNumber;
             dealer.save((err) => {
               if (err) {
-                //send response to client
+                //send response to user
                 response.error = true;
                 response.status = 500;
                 response.errors = err;
@@ -615,7 +615,7 @@ methods.updateDealer = (req, res) => {
                 response.memberMessage = "Some server error has occurred.";
                 return SendResponse(res);
               } else {
-                //send response to client
+                //send response to user
                 response.error = false;
                 response.status = 200;
                 response.errors = null;
@@ -650,7 +650,7 @@ methods.deactivateDealerId = function(req, res) {
       err
     ) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -658,7 +658,7 @@ methods.deactivateDealerId = function(req, res) {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;

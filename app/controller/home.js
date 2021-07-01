@@ -96,7 +96,7 @@ methods.getProductsList = (req, res) => {
     .lean()
     .exec((err, products) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -104,7 +104,7 @@ methods.getProductsList = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -207,7 +207,7 @@ methods.getProducts = async (req, res) => {
     },
     function(err, results) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -215,7 +215,7 @@ methods.getProducts = async (req, res) => {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -239,7 +239,7 @@ methods.getProducts = async (req, res) => {
   //   .lean()
   //   .exec((err, products) => {
   //     if (err) {
-  //       //send response to client
+  //       //send response to user
   //       response.error = true;
   //       response.status = 500;
   //       response.errors = err;
@@ -249,7 +249,7 @@ methods.getProducts = async (req, res) => {
   //     } else {
   //       Product.count(query, async function(err, totalRecords) {
   //         if (err) {
-  //           //send response to client
+  //           //send response to user
   //           response.error = true;
   //           response.status = 500;
   //           response.errors = err;
@@ -257,7 +257,7 @@ methods.getProducts = async (req, res) => {
   //           response.data = null;
   //           return SendResponse(res);
   //         } else {
-  //           //send response to client
+  //           //send response to user
   //           response.error = false;
   //           response.status = 200;
   //           response.errors = null;
@@ -320,7 +320,7 @@ methods.getHeaderInfo = (req, res) => {
     },
     function(err, results) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -328,7 +328,7 @@ methods.getHeaderInfo = (req, res) => {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -347,7 +347,7 @@ methods.getHeaderInfo = (req, res) => {
   //   .lean()
   //   .exec((err, brands) => {
   //     if (err) {
-  //       //send response to client
+  //       //send response to user
   //       response.error = true;
   //       response.status = 500;
   //       response.errors = err;
@@ -355,7 +355,7 @@ methods.getHeaderInfo = (req, res) => {
   //       response.memberMessage = "Some server error has occurred.";
   //       return SendResponse(res);
   //     } else {
-  //       //send response to client
+  //       //send response to user
   //       response.error = false;
   //       response.status = 200;
   //       response.errors = null;
@@ -433,7 +433,7 @@ methods.getHomeInfo = (req, res) => {
     },
     function(err, results) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -441,7 +441,7 @@ methods.getHomeInfo = (req, res) => {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -489,7 +489,7 @@ methods.getCommenHeaderInfo = (req, res) => {
     },
     function(err, results) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -501,7 +501,7 @@ methods.getCommenHeaderInfo = (req, res) => {
           brands: chunkArray(results.brandList),
           products: chunkArray(results.categoryList),
         };
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -517,7 +517,7 @@ methods.getCommenHeaderInfo = (req, res) => {
   //   .lean()
   //   .exec((err, brands) => {
   //     if (err) {
-  //       //send response to client
+  //       //send response to user
   //       response.error = true;
   //       response.status = 500;
   //       response.errors = err;
@@ -525,7 +525,7 @@ methods.getCommenHeaderInfo = (req, res) => {
   //       response.memberMessage = "Some server error has occurred.";
   //       return SendResponse(res);
   //     } else {
-  //       //send response to client
+  //       //send response to user
   //       response.error = false;
   //       response.status = 200;
   //       response.errors = null;

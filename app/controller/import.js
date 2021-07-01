@@ -81,7 +81,7 @@ methods.importPolicyPlansList = (req, res) => {
     return SendResponse(res, 400);
   } else {
     //Database functions here
-    //send response to client
+    //send response to user
     var policy = {
       policyPlan: req.body.policyPlan,
       policyPlanInfo: req.body.policyPlanInfo,
@@ -111,7 +111,7 @@ methods.importMembers = (req, res) => {
     return SendResponse(res, 400);
   } else {
     //Database functions here
-    //send response to client
+    //send response to user
     response.error = false;
     response.status = 200;
     response.errors = null;

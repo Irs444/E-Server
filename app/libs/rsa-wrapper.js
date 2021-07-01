@@ -5,19 +5,19 @@ const NodeRSA = require("node-rsa");
 const crypto = require("crypto");
 
 // load keys from file
-rsaWrapper.initLoadServerKeys = basePath => {
+rsaWrapper.initLoadServerKeys = (basePath) => {
   rsaWrapper.serverPub = fs.readFileSync(
     path.resolve(basePath, "keys", "server.public.pem")
   );
   rsaWrapper.serverPrivate = fs.readFileSync(
     path.resolve(basePath, "keys", "server.private.pem")
   );
-  rsaWrapper.clientPub = fs.readFileSync(
-    path.resolve(basePath, "keys", "client.public.pem")
+  rsaWrapper.userPub = fs.readFileSync(
+    path.resolve(basePath, "keys", "user.public.pem")
   );
 };
 
-rsaWrapper.generate = direction => {
+rsaWrapper.generate = (direction) => {
   let key = new NodeRSA();
   key.generateKeyPair(2048, 65537);
   fs.writeFileSync(
@@ -46,7 +46,7 @@ rsaWrapper.encrypt = (publicKey, message) => {
   let enc = crypto.publicEncrypt(
     {
       key: publicKey,
-      padding: crypto.RSA_PKCS1_OAEP_PADDING
+      padding: crypto.RSA_PKCS1_OAEP_PADDING,
     },
     Buffer.from(message)
   );
@@ -58,7 +58,7 @@ rsaWrapper.decrypt = (privateKey, message) => {
   let enc = crypto.privateDecrypt(
     {
       key: privateKey,
-      padding: crypto.RSA_PKCS1_OAEP_PADDING
+      padding: crypto.RSA_PKCS1_OAEP_PADDING,
     },
     Buffer.from(message, "base64")
   );

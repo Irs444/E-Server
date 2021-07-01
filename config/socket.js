@@ -1,34 +1,43 @@
 const fs = require("fs");
 const path = require("path");
 
-module.exports = function (io, aesWrapper, rsaWrapper) {
+module.exports = function(io, aesWrapper, rsaWrapper) {
   io.set("heartbeat timeout", 25000);
   io.set("heartbeat interval", 2000);
 
   // web socket connection event
-  io.on("connection", function (socket) {
+  io.on("connection", function(socket) {
     socket.emit("pong", {
-      beat: 1
+      beat: 1,
     });
 
-    socket.on("ping", function (data) {
+    socket.on("ping", function(data) {
       socket.emit("pong", {
-        beat: 1
+        beat: 1,
       });
     });
 
-    // Test sending to client dummy RSA message
-    let encrypted = rsaWrapper.encrypt(rsaWrapper.clientPub, "Hello RSA message from client to server");
+    // Test sending to user dummy RSA message
+    let encrypted = rsaWrapper.encrypt(
+      rsaWrapper.userPub,
+      "Hello RSA message from user to server"
+    );
     socket.emit("rsa server encrypted message", encrypted);
 
-    // Test accepting dummy RSA message from client
-    socket.on("rsa client encrypted message", function (data) {
-      console.log("Server received RSA message from client");
+    // Test accepting dummy RSA message from user
+    socket.on("rsa user encrypted message", function(data) {
+      console.log("Server received RSA message from user");
       console.log("Encrypted message is", "\n", data);
-      console.log("Decrypted message", "\n", rsaWrapper.decrypt(rsaWrapper.serverPrivate, data));
+      console.log(
+        "Decrypted message",
+        "\n",
+        rsaWrapper.decrypt(rsaWrapper.serverPrivate, data)
+      );
     });
 
-    socket.emit("CLIENT_PRIVATE_KEY",`-----BEGIN PRIVATE KEY-----
+    socket.emit(
+      "CLIENT_PRIVATE_KEY",
+      `-----BEGIN PRIVATE KEY-----
 MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCPd6yH7y8h1Ihv
 jh3TIYFYPA6BAMBSptltJSRLuGj04/em2imarDbQFzftF8oCoSOpjzyTOXTXUFbD
 8wH+7TDl/mmzxUf+WoUT9Z5RZu5hkaLvDl1watSaINg4/LPgHsaVgVTCSSJp24gU
@@ -55,17 +64,21 @@ BhACYudJ0E2hT4nfEDvclNkdThe7wvRoWcZlnMECgYBDSLnDeyduLhvctgcJUU9F
 QdqFYAWjzXFfJItUGWAGFC7Lpn8PVcc7u6hH1oFJlohi39T2gYrKB5PmYN9/52/r
 u8ThbAvTm+yqMmsDNkBkohfx25p3NLsV0r46mpRXuraQTFXcYrc1mW+BkoteY06S
 Oe6lSHTplzRc0QPTat5+mQ==
------END PRIVATE KEY-----`)
+-----END PRIVATE KEY-----`
+    );
 
-    let encryptedAesKey = rsaWrapper.encrypt(rsaWrapper.clientPub, AESKey.toString("base64"));
+    let encryptedAesKey = rsaWrapper.encrypt(
+      rsaWrapper.userPub,
+      AESKey.toString("base64")
+    );
     socket.emit("SECRET_KEY", encryptedAesKey);
 
     // Test accepting dummy AES key message
-    socket.on("aes client encrypted message", function (data) {
-      // console.log('Server received AES message from client', '\n', 'Encrypted message is', '\n', data);
+    socket.on("aes user encrypted message", function(data) {
+      // console.log('Server received AES message from user', '\n', 'Encrypted message is', '\n', data);
       console.log("Decrypted message", "\n", aesWrapper.decrypt(AESKey, data));
 
-      // Test send client dummy AES message
+      // Test send user dummy AES message
       let message = aesWrapper.createAesMessage(AESKey, "Server AES message");
       socket.emit("aes server encrypted message", message);
     });

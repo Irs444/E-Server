@@ -56,8 +56,8 @@ module.exports.controller = function(router) {
     .post(session.checkToken, methods.createProduct)
     .put(session.checkToken, methods.updateProduct)
     .delete(session.checkToken, methods.deactivateProductId);
-  router.route("/public/products").get(methods.getProductClients);
-  router.route("/public/search").get(methods.getSearchClients);
+  router.route("/public/products").get(methods.getProductUsers);
+  router.route("/public/search").get(methods.getSearchUsers);
   ///product/list
   router
     .route("/product/list")
@@ -98,7 +98,7 @@ methods.createProduct = (req, res) => {
       active: true,
     }).exec((err, product) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -106,7 +106,7 @@ methods.createProduct = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (product && product.length > 0) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -120,7 +120,7 @@ methods.createProduct = (req, res) => {
         });
         product.save((err) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -128,7 +128,7 @@ methods.createProduct = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             response.error = false;
             response.status = 200;
             response.errors = null;
@@ -158,7 +158,7 @@ methods.getProductsList = (req, res) => {
     .lean()
     .exec((err, products) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -166,7 +166,7 @@ methods.getProductsList = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -183,7 +183,7 @@ methods.getProductsList = (req, res) => {
 ***   get list of products  ***
 =======================================*/
 
-methods.getSearchClients = async (req, res) => {
+methods.getSearchUsers = async (req, res) => {
   var query = {
     active: true,
   };
@@ -320,7 +320,7 @@ methods.getSearchClients = async (req, res) => {
     },
     function(err, results) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -328,7 +328,7 @@ methods.getSearchClients = async (req, res) => {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -340,7 +340,7 @@ methods.getSearchClients = async (req, res) => {
     }
   );
 };
-methods.getProductClients = async (req, res) => {
+methods.getProductUsers = async (req, res) => {
   var query = {
     active: true,
     public: true,
@@ -472,7 +472,7 @@ methods.getProductClients = async (req, res) => {
     },
     function(err, results) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -480,7 +480,7 @@ methods.getProductClients = async (req, res) => {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -582,7 +582,7 @@ methods.getProducts = async (req, res) => {
     },
     function(err, results) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -590,7 +590,7 @@ methods.getProducts = async (req, res) => {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -614,7 +614,7 @@ methods.getProducts = async (req, res) => {
   //   .lean()
   //   .exec((err, products) => {
   //     if (err) {
-  //       //send response to client
+  //       //send response to user
   //       response.error = true;
   //       response.status = 500;
   //       response.errors = err;
@@ -624,7 +624,7 @@ methods.getProducts = async (req, res) => {
   //     } else {
   //       Product.count(query, async function(err, totalRecords) {
   //         if (err) {
-  //           //send response to client
+  //           //send response to user
   //           response.error = true;
   //           response.status = 500;
   //           response.errors = err;
@@ -632,7 +632,7 @@ methods.getProducts = async (req, res) => {
   //           response.data = null;
   //           return SendResponse(res);
   //         } else {
-  //           //send response to client
+  //           //send response to user
   //           response.error = false;
   //           response.status = 200;
   //           response.errors = null;
@@ -680,7 +680,7 @@ methods.updateProduct = (req, res) => {
     }).exec((err, product) => {
       console.log({ err }, "---1s");
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -688,7 +688,7 @@ methods.updateProduct = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (product && product.length > 0) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -703,7 +703,7 @@ methods.updateProduct = (req, res) => {
           { ...req.body }
         ).exec((err, product) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -711,7 +711,7 @@ methods.updateProduct = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else if (!product) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 400;
             response.errors = null;
@@ -719,7 +719,7 @@ methods.updateProduct = (req, res) => {
             response.memberMessage = "product not found.";
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             response.error = false;
             response.status = 200;
             response.errors = null;
@@ -753,7 +753,7 @@ methods.deactivateProductId = function(req, res) {
       { active: 0 },
       function(err) {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -761,7 +761,7 @@ methods.deactivateProductId = function(req, res) {
           response.data = null;
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -801,7 +801,7 @@ methods.updateProductStatus = (req, res) => {
       }
     ).exec((err, product) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -809,7 +809,7 @@ methods.updateProductStatus = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (!product) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -817,7 +817,7 @@ methods.updateProductStatus = (req, res) => {
         response.memberMessage = "product not found.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;

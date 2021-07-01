@@ -464,7 +464,7 @@ methods.dashboardAnalytics = (req, res) => {
     function done(err, results) {
       // console.log({ err, results });
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -472,7 +472,7 @@ methods.dashboardAnalytics = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         var connectedMembers = results.connectedMembers;
         var subscribedMembers = results.subscribedMembers;
         // console.log({ subscribedMembers, connectedMembers });
@@ -744,7 +744,7 @@ methods.dashboardAnalytics2 = (req, res) => {
     ],
     (err, results) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -752,7 +752,7 @@ methods.dashboardAnalytics2 = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -937,7 +937,7 @@ methods.dashboardAnalytics2 = (req, res) => {
 //     },
 //     (err, results) => {
 //       if (err) {
-//         //send response to client
+//         //send response to user
 //         response.error = true;
 //         response.status = 500;
 //         response.errors = err;
@@ -947,7 +947,7 @@ methods.dashboardAnalytics2 = (req, res) => {
 //         response.memberMessage = "Some server error has occurred.";
 //         return SendResponse(res);
 //       } else {
-//         //send response to client
+//         //send response to user
 //         response.error = false;
 //         response.status = 200;
 //         response.errors = null;

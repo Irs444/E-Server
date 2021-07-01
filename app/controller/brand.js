@@ -117,7 +117,7 @@ methods.getBrandCategoryList = (req, res) => {
     },
     function(err, results) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -125,7 +125,7 @@ methods.getBrandCategoryList = (req, res) => {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -143,7 +143,7 @@ methods.getBrandCategoryList = (req, res) => {
   //   .lean()
   //   .exec((err, brands) => {
   //     if (err) {
-  //       //send response to client
+  //       //send response to user
   //       response.error = true;
   //       response.status = 500;
   //       response.errors = err;
@@ -151,7 +151,7 @@ methods.getBrandCategoryList = (req, res) => {
   //       response.memberMessage = "Some server error has occurred.";
   //       return SendResponse(res);
   //     } else {
-  //       //send response to client
+  //       //send response to user
   //       response.error = false;
   //       response.status = 200;
   //       response.errors = null;
@@ -190,7 +190,7 @@ methods.createBrand = (req, res) => {
       active: true,
     }).exec((err, brands) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -198,7 +198,7 @@ methods.createBrand = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (brands && brands.length > 0) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -212,7 +212,7 @@ methods.createBrand = (req, res) => {
         });
         brand.save((err) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -220,7 +220,7 @@ methods.createBrand = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             response.error = false;
             response.status = 200;
             response.errors = null;
@@ -249,7 +249,7 @@ methods.getBrands = async (req, res) => {
       .lean()
       .exec((err, brands) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -257,7 +257,7 @@ methods.getBrands = async (req, res) => {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -326,7 +326,7 @@ methods.getBrands = async (req, res) => {
       .lean()
       .exec((err, brands) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -336,7 +336,7 @@ methods.getBrands = async (req, res) => {
         } else {
           Brand.count(query, async function(err, totalRecords) {
             if (err) {
-              //send response to client
+              //send response to user
               response.error = true;
               response.status = 500;
               response.errors = err;
@@ -344,7 +344,7 @@ methods.getBrands = async (req, res) => {
               response.data = null;
               return SendResponse(res);
             } else {
-              //send response to client
+              //send response to user
               response.error = false;
               response.status = 200;
               response.errors = null;
@@ -393,7 +393,7 @@ methods.updateBrand = (req, res) => {
     }).exec((err, brands) => {
       console.log({ brands });
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -401,7 +401,7 @@ methods.updateBrand = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (brands && brands.length > 0) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -419,7 +419,7 @@ methods.updateBrand = (req, res) => {
           }
         ).exec((err, brand) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -427,7 +427,7 @@ methods.updateBrand = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else if (!brand) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 400;
             response.errors = null;
@@ -435,7 +435,7 @@ methods.updateBrand = (req, res) => {
             response.memberMessage = "brand not found.";
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             response.error = false;
             response.status = 200;
             response.errors = null;
@@ -469,7 +469,7 @@ methods.deactivateBrandId = function(req, res) {
       { active: false },
       function(err) {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -477,7 +477,7 @@ methods.deactivateBrandId = function(req, res) {
           response.data = null;
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -517,7 +517,7 @@ methods.updateBrandStatus = (req, res) => {
       }
     ).exec((err, product) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -525,7 +525,7 @@ methods.updateBrandStatus = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (!product) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -533,7 +533,7 @@ methods.updateBrandStatus = (req, res) => {
         response.memberMessage = "Brand not found.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -574,7 +574,7 @@ methods.createCategory = (req, res) => {
       active: true,
     }).exec((err, categories) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -582,7 +582,7 @@ methods.createCategory = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (categories && categories.length > 0) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -596,7 +596,7 @@ methods.createCategory = (req, res) => {
         });
         category.save((err) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -604,7 +604,7 @@ methods.createCategory = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             response.error = false;
             response.status = 200;
             response.errors = null;
@@ -631,7 +631,7 @@ methods.getCategories = async (req, res) => {
       .lean()
       .exec((err, categories) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -639,7 +639,7 @@ methods.getCategories = async (req, res) => {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -702,7 +702,7 @@ methods.getCategories = async (req, res) => {
       .lean()
       .exec((err, categories) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -712,7 +712,7 @@ methods.getCategories = async (req, res) => {
         } else {
           Category.count(query, async function(err, totalRecords) {
             if (err) {
-              //send response to client
+              //send response to user
               response.error = true;
               response.status = 500;
               response.errors = err;
@@ -720,7 +720,7 @@ methods.getCategories = async (req, res) => {
               response.data = null;
               return SendResponse(res);
             } else {
-              //send response to client
+              //send response to user
               response.error = false;
               response.status = 200;
               response.errors = null;
@@ -769,7 +769,7 @@ methods.updateCategory = (req, res) => {
       active: true,
     }).exec((err, categories) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -777,7 +777,7 @@ methods.updateCategory = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (categories && categories.length > 0) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -795,7 +795,7 @@ methods.updateCategory = (req, res) => {
           }
         ).exec((err, category) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -803,7 +803,7 @@ methods.updateCategory = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else if (!category) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 400;
             response.errors = null;
@@ -811,7 +811,7 @@ methods.updateCategory = (req, res) => {
             response.memberMessage = "category not found.";
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             response.error = false;
             response.status = 200;
             response.errors = null;
@@ -845,7 +845,7 @@ methods.deactivateCategoryId = function(req, res) {
       { active: false },
       function(err) {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -853,7 +853,7 @@ methods.deactivateCategoryId = function(req, res) {
           response.data = null;
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -893,7 +893,7 @@ methods.updateCategoryStatus = (req, res) => {
       }
     ).exec((err, product) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -901,7 +901,7 @@ methods.updateCategoryStatus = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (!product) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -909,7 +909,7 @@ methods.updateCategoryStatus = (req, res) => {
         response.memberMessage = "Category not found.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -949,7 +949,7 @@ methods.createBannerImage = (req, res) => {
     });
     bannerImage.save((err) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -957,7 +957,7 @@ methods.createBannerImage = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -986,7 +986,7 @@ methods.getBannerImages = async (req, res) => {
       .lean()
       .exec((err, bannerImages) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -994,7 +994,7 @@ methods.getBannerImages = async (req, res) => {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -1064,7 +1064,7 @@ methods.getBannerImages = async (req, res) => {
       .lean()
       .exec((err, bannerImages) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -1074,7 +1074,7 @@ methods.getBannerImages = async (req, res) => {
         } else {
           BannerImage.count(query, async function(err, totalRecords) {
             if (err) {
-              //send response to client
+              //send response to user
               response.error = true;
               response.status = 500;
               response.errors = err;
@@ -1082,7 +1082,7 @@ methods.getBannerImages = async (req, res) => {
               response.data = null;
               return SendResponse(res);
             } else {
-              //send response to client
+              //send response to user
               response.error = false;
               response.status = 200;
               response.errors = null;
@@ -1131,7 +1131,7 @@ methods.updateBannerImage = (req, res) => {
       }
     ).exec((err, bannerImage) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -1139,7 +1139,7 @@ methods.updateBannerImage = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (!bannerImage) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -1147,7 +1147,7 @@ methods.updateBannerImage = (req, res) => {
         response.memberMessage = "Banner image not found.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -1179,7 +1179,7 @@ methods.deactivateBannerImageId = function(req, res) {
       { active: false },
       function(err) {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -1187,7 +1187,7 @@ methods.deactivateBannerImageId = function(req, res) {
           response.data = null;
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -1227,7 +1227,7 @@ methods.updateBannerImageStatus = (req, res) => {
       }
     ).exec((err, banner) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -1235,7 +1235,7 @@ methods.updateBannerImageStatus = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (!banner) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -1243,7 +1243,7 @@ methods.updateBannerImageStatus = (req, res) => {
         response.memberMessage = "Banner image not found.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         banner.public = req.body.public;
         response.error = false;
         response.status = 200;

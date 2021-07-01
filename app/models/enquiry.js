@@ -8,10 +8,10 @@ var Enquiry = new Schema({
     default: null,
     ref: "product",
   },
-  clientId: {
+  userId: {
     type: ObjectId,
     default: null,
-    ref: "client",
+    ref: "user",
   },
   staffMemberId: {
     type: ObjectId,

@@ -22,7 +22,7 @@ global.AESKey = aesWrapper.generateKey();
 var connect = function() {
   var options = {
     keepAlive: 1,
-    useMongoClient: true,
+    useMongoUser: true,
   };
 
   mongoose.connect(config.db, options);

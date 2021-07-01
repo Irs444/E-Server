@@ -50,11 +50,11 @@ module.exports.controller = function(router) {
   router.route("/signup").post(methods.memberSignup);
 
   router.route("/ping").get(session.checkToken, function(req, res) {
-    //send response to client
+    //send response to user
 
     Enquiry.find({ active: true, contactUs: false })
       .populate("productId")
-      .populate("clientId")
+      .populate("userId")
       .populate("staffMemberId", "name profilePicUrl")
       .sort({
         createdAt: -1,
@@ -63,7 +63,7 @@ module.exports.controller = function(router) {
       .lean()
       .exec((err, enquiries) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -133,7 +133,7 @@ methods.memberSignup = function(req, res) {
       },
       (err, staffMember) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -141,7 +141,7 @@ methods.memberSignup = function(req, res) {
           response.data = null;
           return SendResponse(res);
         } else if (staffMember) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 400;
           response.errors = null;
@@ -159,7 +159,7 @@ methods.memberSignup = function(req, res) {
           });
           staffMember.save((err) => {
             if (err) {
-              //send response to client
+              //send response to user
               response.error = true;
               response.status = 500;
               response.errors = err;
@@ -190,7 +190,7 @@ methods.memberSignup = function(req, res) {
                 },
                 (err) => {
                   if (err) {
-                    //send response to client
+                    //send response to user
                     response.error = true;
                     response.status = 500;
                     response.errors = err;
@@ -198,7 +198,7 @@ methods.memberSignup = function(req, res) {
                     response.data = null;
                     return SendResponse(res);
                   } else {
-                    //send response to client
+                    //send response to user
                     response.error = false;
                     response.status = 200;
                     response.errors = null;
@@ -242,7 +242,7 @@ methods.memberLogin = (req, res) => {
       imeiNumber: req.body.imeiNumber, // imeiNumber
     }).exec((err, staffMember) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -250,7 +250,7 @@ methods.memberLogin = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (!staffMember) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -262,7 +262,7 @@ methods.memberLogin = (req, res) => {
         if (
           staffMember.password !== cryptography.encrypt(req.body.contactNumber)
         ) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 400;
           response.errors = null;
@@ -293,7 +293,7 @@ methods.memberLogin = (req, res) => {
             }
           ).exec((err) => {
             if (err) {
-              //send response to client
+              //send response to user
               response.error = true;
               response.status = 500;
               response.errors = err;
@@ -301,7 +301,7 @@ methods.memberLogin = (req, res) => {
               response.data = null;
               return SendResponse(res);
             } else {
-              //send response to client
+              //send response to user
               response.error = false;
               response.status = 200;
               response.errors = null;
@@ -340,7 +340,7 @@ methods.passwordReset = (req, res) => {
       { new: true }
     ).exec((err, member) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -348,7 +348,7 @@ methods.passwordReset = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (!member) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -356,7 +356,7 @@ methods.passwordReset = (req, res) => {
         response.memberMessage = "Staff member not found.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -462,7 +462,7 @@ methods.getMembers = (req, res) => {
     .lean()
     .exec((err, members) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -472,7 +472,7 @@ methods.getMembers = (req, res) => {
       } else {
         StaffMember.count(query, async function(err, totalRecords) {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -480,7 +480,7 @@ methods.getMembers = (req, res) => {
             response.data = null;
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             response.error = false;
             response.status = 200;
             response.errors = null;
@@ -589,7 +589,7 @@ methods.getStaffMembers = (req, res) => {
     .lean()
     .exec((err, members) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -599,7 +599,7 @@ methods.getStaffMembers = (req, res) => {
       } else {
         StaffMember.count(query, async function(err, totalRecords) {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -607,7 +607,7 @@ methods.getStaffMembers = (req, res) => {
             response.data = null;
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             response.error = false;
             response.status = 200;
             response.errors = null;
@@ -650,7 +650,7 @@ methods.updateStaffMemberStatus = (req, res) => {
       { new: true }
     ).exec((err, member) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -658,7 +658,7 @@ methods.updateStaffMemberStatus = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (!member) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -666,7 +666,7 @@ methods.updateStaffMemberStatus = (req, res) => {
         response.memberMessage = "Staff member not found.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -702,7 +702,7 @@ methods.createMember = (req, res) => {
       email: req.body.email.toLowerCase(),
     }).exec((err, member) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -710,7 +710,7 @@ methods.createMember = (req, res) => {
         response.member = "Some server error has occurred.";
         return SendResponse(res);
       } else if (member) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -732,7 +732,7 @@ methods.createMember = (req, res) => {
         });
         member.save((err) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -740,7 +740,7 @@ methods.createMember = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             var mailGenerator = new Mailgen({
               theme: "salted",
               product: {
@@ -819,7 +819,7 @@ methods.updateMember = (req, res) => {
       contactNumber: req.body.contactNumber,
     }).exec((err, existingMember) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -827,7 +827,7 @@ methods.updateMember = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (existingMember) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -847,7 +847,7 @@ methods.updateMember = (req, res) => {
           { new: true }
         ).exec((err, staffMember) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -855,7 +855,7 @@ methods.updateMember = (req, res) => {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else if (!staffMember) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 400;
             response.errors = null;
@@ -863,7 +863,7 @@ methods.updateMember = (req, res) => {
             response.memberMessage = "staffMember not found.";
             return SendResponse(res);
           } else {
-            //send response to client
+            //send response to user
             response.error = false;
             response.status = 200;
             response.errors = null;
@@ -898,7 +898,7 @@ methods.deactivateMemberId = function(req, res) {
       { active: 0 },
       function(err) {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -906,7 +906,7 @@ methods.deactivateMemberId = function(req, res) {
           response.data = null;
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -969,7 +969,7 @@ methods.getScanedEmail = function(req, res) {
     .lean()
     .exec((err, emails) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -977,11 +977,11 @@ methods.getScanedEmail = function(req, res) {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
 
         Emails.count(query, async function(err, totalRecords) {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
