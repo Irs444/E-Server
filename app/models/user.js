@@ -52,4 +52,20 @@ var User = new Schema({
   },
 });
 
-mongoose.model("user", User);
+var UserSession = new Schema({
+  userId: {
+    type: ObjectId,
+    default: null,
+    ref: "user",
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  authToken: {
+    type: String,
+  },
+});
+
+mongoose.model("UserSession", UserSession, "UserSession");
+mongoose.model("User", User, "User");
