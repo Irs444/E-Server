@@ -351,23 +351,23 @@ methods.getProductClients = async (req, res) => {
   if (req.query.brandUrl) {
     query.brandUrl = req.query.brandUrl;
   }
-  if (req.query.filterBrand) {
-    query.brandUrl = { $in: req.query.filterBrand };
+  if (req.query.filterBrands) {
+    query.brandUrl = { $in: req.query.filterBrands };
   }
-  if (req.query.filterCategory) {
-    query.categoryUrl = { $in: req.query.filterCategory };
+  if (req.query.filterCategories) {
+    query.categoryUrl = { $in: req.query.filterCategories };
   }
-  console.log("req.query.filterSubCategory", req.query.filterSubCategory);
+  console.log("req.query.filterSubCategories", req.query.filterSubCategories);
   if (req.query.productStatus && req.query.productStatus != "all") {
     query.public = req.query.productStatus === "deactivated" ? false : true;
   }
   query["$and"] = [];
 
-  if (req.query.filterSubCategory) {
+  if (req.query.filterSubCategories) {
     query["$and"].push({
-      "subCategory.label": { $in: req.query.filterSubCategory },
+      "subCategory.label": { $in: req.query.filterSubCategories },
     });
-    // query.subCategory.label = { $in: req.query.filterSubCategory };
+    // query.subCategory.label = { $in: req.query.filterSubCategories };
   }
   if (req.query.searchText && req.query.searchText !== "") {
     query["$and"].push({
