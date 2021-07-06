@@ -2,7 +2,7 @@ var cryptography = require("../libs/cryptography");
 var mongoose = require("mongoose");
 var jwt = require("jsonwebtoken");
 var session = require("../libs/session");
-var User = mongoose.model("user");
+var User = mongoose.model("User");
 var Enquiry = mongoose.model("enquiry");
 var Session = mongoose.model("session");
 var config = require("../../config/config");
@@ -52,12 +52,15 @@ var methods = {};
  */
 module.exports.controller = function(router) {
   router.route("/contact").post(methods.userContactUs);
+  router.route("/enquiry").post(session.checkUserToken, methods.userEnquiry);
+
   router
     .route("/user")
     .get(session.checkToken, methods.getUsers)
-    .post(methods.createUser)
+    // .post(methods.createUser)
     .put(session.checkToken, methods.updateUsers)
     .delete(session.checkToken, methods.deactivateUserId);
+
   router
     .route("/user/enquiries")
     .get(session.checkToken, methods.getUserEnquiries)
@@ -306,12 +309,12 @@ methods.userContactUs = (req, res) => {
 ***   create new user  ***
 =====================================*/
 
-methods.createUser = (req, res) => {
-  req.checkBody("name", "name cannot be empty.").notEmpty();
-  req.checkBody("email", "email cannot be empty.").notEmpty();
-  req.checkBody("contactNumber", "contactNumber cannot be empty.").notEmpty();
+methods.userEnquiry = (req, res) => {
+  // req.checkBody("name", "name cannot be empty.").notEmpty();
+  // req.checkBody("email", "email cannot be empty.").notEmpty();
+  // req.checkBody("contactNumber", "contactNumber cannot be empty.").notEmpty();
   req.checkBody("quantity", "quantity cannot be empty.").notEmpty();
-  req.checkBody("country", "country cannot be empty.").notEmpty();
+  // req.checkBody("country", "country cannot be empty.").notEmpty();
   req.checkBody("productId", "productId cannot be empty.").notEmpty();
 
   var errors = req.validationErrors(true);
@@ -322,18 +325,14 @@ methods.createUser = (req, res) => {
     response.errors = errors;
     return SendResponse(res, 400);
   } else {
-    //Database functions here
-    /**
-     * Hello Name_of_Customer
-
-We have received your enquiry. We will contact you within next 24 hours.
-
-Thanking your,
-Arab Tech Store*
-     */
-    User.findOne({
-      email: req.body.email,
-    }).exec((err, user) => {
+    var user = req.user;
+    var enquiry = new Enquiry({
+      userId: user._id,
+      quantity: req.body.quantity,
+      productId: req.body.productId,
+      message: req.body.message,
+    });
+    enquiry.save((err) => {
       if (err) {
         //send response to user
         response.error = true;
@@ -342,171 +341,45 @@ Arab Tech Store*
         response.data = null;
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
-      } else if (user) {
-        if (!user.isApproved) {
-          response.error = false;
-          response.status = 200;
-          response.errors = null;
-          response.data = null;
-          response.memberMessage = "Request send successfully.";
-          return SendResponse(res);
-        } else {
-          //send response to user
-          user.name = req.body.name;
-          user.email = req.body.email;
-          user.contactNumber = req.body.contactNumber || user.contactNumber;
-          // user.quantity = req.body.quantity;
-          user.country = req.body.country || user.country;
-          // user.productId = req.body.productId;
-          user.save((err) => {
-            if (err) {
-              //send response to user
-              response.error = true;
-              response.status = 500;
-              response.errors = err;
-              response.data = null;
-              response.memberMessage = "Some server error has occurred.";
-              return SendResponse(res);
-            } else {
-              var enquiry = new Enquiry({
-                userId: user._id,
-                quantity: req.body.quantity,
-                productId: req.body.productId,
-                message: req.body.message,
-              });
-              enquiry.save((err) => {
-                if (err) {
-                  //send response to user
-                  response.error = true;
-                  response.status = 500;
-                  response.errors = err;
-                  response.data = null;
-                  response.memberMessage = "Some server error has occurred.";
-                  return SendResponse(res);
-                } else {
-                  //send response to user
-                  var mailGenerator = new Mailgen({
-                    theme: "salted",
-                    product: {
-                      // Appears in header & footer of e-mails
-                      name: "Arab Tech Store",
-                      link: "http://arabtechstore.com",
-                      logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
-                    },
-                  });
-
-                  var email = {
-                    body: {
-                      name: req.body.name,
-                      link: ` `,
-                      intro:
-                        "We have received your enquiry. We will contact you within next 24 hours.",
-                      action: {
-                        instructions: "", // `To get started with Arab Tech Store use this email ${req.body.email} and password ${oneTimePassword}, please click here:`,
-                        button: {
-                          color: "#002b7a", // Optional action button color
-                          text: "Go to Website",
-                          link: `http://arabtechstore.com`,
-                        },
-                      },
-                      outro:
-                        "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
-                    },
-                  };
-                  // Generate an HTML email with the provided contents
-                  var emailBody = mailGenerator.generate(email);
-                  mail.sendMail(
-                    req.body.email,
-                    "Welcome to Arab Tech Store",
-                    emailBody
-                  );
-                  response.error = false;
-                  response.status = 200;
-                  response.errors = null;
-                  response.data = null;
-                  response.memberMessage = "Request send successfully.";
-                  return SendResponse(res);
-                }
-              });
-            }
-          });
-        }
       } else {
-        var user = new User({
-          ...req.body,
+        //send response to user
+        var mailGenerator = new Mailgen({
+          theme: "salted",
+          product: {
+            // Appears in header & footer of e-mails
+            name: "Arab Tech Store",
+            link: "http://arabtechstore.com",
+            logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
+          },
         });
-        user.save((err) => {
-          if (err) {
-            //send response to user
-            response.error = true;
-            response.status = 500;
-            response.errors = err;
-            response.data = null;
-            response.memberMessage = "Some server error has occurred.";
-            return SendResponse(res);
-          } else {
-            var enquiry = new Enquiry({
-              userId: user._id,
-              quantity: req.body.quantity,
-              productId: req.body.productId,
-              message: req.body.message,
-            });
-            enquiry.save((err) => {
-              if (err) {
-                //send response to user
-                response.error = true;
-                response.status = 500;
-                response.errors = err;
-                response.data = null;
-                response.memberMessage = "Some server error has occurred.";
-                return SendResponse(res);
-              } else {
-                //send response to user
-                var mailGenerator = new Mailgen({
-                  theme: "salted",
-                  product: {
-                    // Appears in header & footer of e-mails
-                    name: "Arab Tech Store",
-                    link: "http://arabtechstore.com",
-                    logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
-                  },
-                });
 
-                var email = {
-                  body: {
-                    name: req.body.name,
-                    link: ` `,
-                    intro:
-                      "We have received your enquiry. We will contact you within next 24 hours.",
-                    action: {
-                      instructions: "", // `To get started with Arab Tech Store use this email ${req.body.email} and password ${oneTimePassword}, please click here:`,
-                      button: {
-                        color: "#002b7a", // Optional action button color
-                        text: "Go to Website",
-                        link: `http://arabtechstore.com`,
-                      },
-                    },
-                    outro:
-                      "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
-                  },
-                };
-                // Generate an HTML email with the provided contents
-                var emailBody = mailGenerator.generate(email);
-                mail.sendMail(
-                  req.body.email,
-                  "Welcome to Arab Tech Store",
-                  emailBody
-                );
-                response.error = false;
-                response.status = 200;
-                response.errors = null;
-                response.data = null;
-                response.memberMessage = "Request send successfully.";
-                return SendResponse(res);
-              }
-            });
-          }
-        });
+        var email = {
+          body: {
+            name: user.name,
+            link: ` `,
+            intro:
+              "We have received your enquiry. We will contact you within next 24 hours.",
+            action: {
+              instructions: "", // `To get started with Arab Tech Store use this email ${user.email} and password ${oneTimePassword}, please click here:`,
+              button: {
+                color: "#002b7a", // Optional action button color
+                text: "Go to Website",
+                link: `http://arabtechstore.com`,
+              },
+            },
+            outro:
+              "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
+          },
+        };
+        // Generate an HTML email with the provided contents
+        var emailBody = mailGenerator.generate(email);
+        mail.sendMail(user.email, "Welcome to Arab Tech Store", emailBody);
+        response.error = false;
+        response.status = 200;
+        response.errors = null;
+        response.data = null;
+        response.memberMessage = "Request send successfully.";
+        return SendResponse(res);
       }
     });
   }
