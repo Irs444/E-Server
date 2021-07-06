@@ -351,26 +351,23 @@ methods.getProductClients = async (req, res) => {
   if (req.query.brandUrl) {
     query.brandUrl = req.query.brandUrl;
   }
-  if (req.query.filterBrandList) {
-    query.brandUrl = { $in: req.query.filterBrandList };
+  if (req.query.filterBrand) {
+    query.brandUrl = { $in: req.query.filterBrand };
   }
-  if (req.query.filterCategoryList) {
-    query.categoryUrl = { $in: req.query.filterCategoryList };
+  if (req.query.filterCategory) {
+    query.categoryUrl = { $in: req.query.filterCategory };
   }
-  console.log(
-    "req.query.filterSubCategoryList",
-    req.query.filterSubCategoryList
-  );
+  console.log("req.query.filterSubCategory", req.query.filterSubCategory);
   if (req.query.productStatus && req.query.productStatus != "all") {
     query.public = req.query.productStatus === "deactivated" ? false : true;
   }
   query["$and"] = [];
 
-  if (req.query.filterSubCategoryList) {
+  if (req.query.filterSubCategory) {
     query["$and"].push({
-      "subCategory.label": { $in: req.query.filterSubCategoryList },
+      "subCategory.label": { $in: req.query.filterSubCategory },
     });
-    // query.subCategory.label = { $in: req.query.filterSubCategoryList };
+    // query.subCategory.label = { $in: req.query.filterSubCategory };
   }
   if (req.query.searchText && req.query.searchText !== "") {
     query["$and"].push({
