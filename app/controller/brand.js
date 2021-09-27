@@ -14,7 +14,7 @@ const aesWrapper = require("../libs/aes-wrapper");
 const async = require("async");
 const moment = require("moment");
 
-/* the response object for API
+/* the response object for  
    error : true / false 
    code : contains any error code
    data : the object or array for data
@@ -29,7 +29,7 @@ var response = {
   errors: null,
 };
 
-var NullResponseValue = function() {
+var NullResponseValue = function () {
   response = {
     error: false,
     status: 200,
@@ -40,7 +40,7 @@ var NullResponseValue = function() {
   return true;
 };
 
-var SendResponse = function(res, status) {
+var SendResponse = function (res, status) {
   res.status(status || 200).send(response);
   NullResponseValue();
   return;
@@ -51,7 +51,7 @@ var methods = {};
 /*
  Routings/controller goes here
  */
-module.exports.controller = function(router) {
+module.exports.controller = function (router) {
   router.route("/lists").get(session.checkToken, methods.getBrandCategoryList);
   router
     .route("/brands")
@@ -90,7 +90,7 @@ methods.getBrandCategoryList = (req, res) => {
   var query = { active: true };
   async.parallel(
     {
-      categoryList: function(callback) {
+      categoryList: function (callback) {
         Category.find(query)
           .sort({
             name: 1,
@@ -98,7 +98,7 @@ methods.getBrandCategoryList = (req, res) => {
           .lean()
           .exec(callback);
       },
-      brandList: function(callback) {
+      brandList: function (callback) {
         Brand.find(query)
           .sort({
             name: 1,
@@ -106,7 +106,7 @@ methods.getBrandCategoryList = (req, res) => {
           .lean()
           .exec(callback);
       },
-      bannerList: function(callback) {
+      bannerList: function (callback) {
         BannerImage.find(query)
           .sort({
             title: 1,
@@ -115,7 +115,7 @@ methods.getBrandCategoryList = (req, res) => {
           .exec(callback);
       },
     },
-    function(err, results) {
+    function (err, results) {
       if (err) {
         //send response to user
         response.error = true;
@@ -294,14 +294,10 @@ methods.getBrands = async (req, res) => {
     }
     if (req.query.startDate && req.query.endDate) {
       let createdAtGTE = new Date(
-        moment(req.query.startDate)
-          .utc("0530")
-          .format()
+        moment(req.query.startDate).utc("0530").format()
       );
       let createdAtLTE = new Date(
-        moment(req.query.endDate)
-          .utc("0530")
-          .format()
+        moment(req.query.endDate).utc("0530").format()
       );
       query["$and"].push({
         createdAt: {
@@ -334,7 +330,7 @@ methods.getBrands = async (req, res) => {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else {
-          Brand.count(query, async function(err, totalRecords) {
+          Brand.count(query, async function (err, totalRecords) {
             if (err) {
               //send response to user
               response.error = true;
@@ -453,7 +449,7 @@ methods.updateBrand = (req, res) => {
 /*====================================
  ***   deactivate existnig Brand   ***
  ======================================*/
-methods.deactivateBrandId = function(req, res) {
+methods.deactivateBrandId = function (req, res) {
   //Check for POST request errors.
   req.checkBody("brandId", "brandId cannot be empty.").notEmpty();
   var errors = req.validationErrors(true);
@@ -467,7 +463,7 @@ methods.deactivateBrandId = function(req, res) {
     Brand.findOneAndUpdate(
       { _id: req.body.brandId },
       { active: false },
-      function(err) {
+      function (err) {
         if (err) {
           //send response to user
           response.error = true;
@@ -670,14 +666,10 @@ methods.getCategories = async (req, res) => {
     }
     if (req.query.startDate && req.query.endDate) {
       let createdAtGTE = new Date(
-        moment(req.query.startDate)
-          .utc("0530")
-          .format()
+        moment(req.query.startDate).utc("0530").format()
       );
       let createdAtLTE = new Date(
-        moment(req.query.endDate)
-          .utc("0530")
-          .format()
+        moment(req.query.endDate).utc("0530").format()
       );
       query["$and"].push({
         createdAt: {
@@ -710,7 +702,7 @@ methods.getCategories = async (req, res) => {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else {
-          Category.count(query, async function(err, totalRecords) {
+          Category.count(query, async function (err, totalRecords) {
             if (err) {
               //send response to user
               response.error = true;
@@ -829,7 +821,7 @@ methods.updateCategory = (req, res) => {
 /*====================================
  ***   deactivate existnig Category   ***
  ======================================*/
-methods.deactivateCategoryId = function(req, res) {
+methods.deactivateCategoryId = function (req, res) {
   //Check for POST request errors.
   req.checkBody("categoryId", "categoryId cannot be empty.").notEmpty();
   var errors = req.validationErrors(true);
@@ -843,7 +835,7 @@ methods.deactivateCategoryId = function(req, res) {
     Category.findOneAndUpdate(
       { _id: req.body.categoryId },
       { active: false },
-      function(err) {
+      function (err) {
         if (err) {
           //send response to user
           response.error = true;
@@ -1030,14 +1022,10 @@ methods.getBannerImages = async (req, res) => {
 
     if (req.query.startDate && req.query.endDate) {
       let createdAtGTE = new Date(
-        moment(req.query.startDate)
-          .utc("0530")
-          .format()
+        moment(req.query.startDate).utc("0530").format()
       );
       let createdAtLTE = new Date(
-        moment(req.query.endDate)
-          .utc("0530")
-          .format()
+        moment(req.query.endDate).utc("0530").format()
       );
       query["$and"].push({
         createdAt: {
@@ -1072,7 +1060,7 @@ methods.getBannerImages = async (req, res) => {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else {
-          BannerImage.count(query, async function(err, totalRecords) {
+          BannerImage.count(query, async function (err, totalRecords) {
             if (err) {
               //send response to user
               response.error = true;
@@ -1163,7 +1151,7 @@ methods.updateBannerImage = (req, res) => {
 /*====================================
  ***   deactivate existnig BannerImage   ***
  ======================================*/
-methods.deactivateBannerImageId = function(req, res) {
+methods.deactivateBannerImageId = function (req, res) {
   //Check for POST request errors.
   req.checkBody("bannerImageId", "bannerImageId cannot be empty.").notEmpty();
   var errors = req.validationErrors(true);
@@ -1177,7 +1165,7 @@ methods.deactivateBannerImageId = function(req, res) {
     BannerImage.findOneAndUpdate(
       { _id: req.body.bannerImageId },
       { active: false },
-      function(err) {
+      function (err) {
         if (err) {
           //send response to user
           response.error = true;
