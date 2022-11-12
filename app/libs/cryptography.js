@@ -17,7 +17,7 @@ cryptography.decrypt = function (text) {
   return dec;
 };
 
-var hw = "0585df9970232b24"; // cryptography.encrypt("aditya@ohphish.com");
+var hw = "0585df9970232b24";
 // console.log(hw);
 // outputs hello world
 // console.log(cryptography.decrypt(hw));

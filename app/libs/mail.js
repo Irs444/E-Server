@@ -1,8 +1,7 @@
 var nodemailer = require("nodemailer");
 var mail = {};
 
-mail.sendMail = function(to, subject, body, sender) {
-  // return this.send(to, subject, sender || "no-reply@ohphish.com", body);
+mail.sendMail = function (to, subject, body, sender) {
   console.log({ to, subject });
   // button is not displayed
   /**
@@ -57,7 +56,7 @@ http://mail.cloudwebmail.net/
   };
 
   // send mail
-  transporter.sendMail(mailOptions, function(error, response) {
+  transporter.sendMail(mailOptions, function (error, response) {
     console.log(error, response);
   });
 };

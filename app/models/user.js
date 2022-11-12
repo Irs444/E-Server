@@ -2,7 +2,7 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
-var Client = new Schema({
+var User = new Schema({
   name: {
     type: String,
     default: "",
@@ -27,12 +27,15 @@ var Client = new Schema({
     type: String,
     default: "",
   },
+  countryCode: {
+    type: String,
+    default: "",
+  },
   active: {
     type: Boolean,
     default: true, //active
     enum: [true, false],
   },
-
   staffMemberId: {
     type: ObjectId,
     default: null,
@@ -49,4 +52,20 @@ var Client = new Schema({
   },
 });
 
-mongoose.model("client", Client);
+var UserSession = new Schema({
+  userId: {
+    type: ObjectId,
+    default: null,
+    ref: "user",
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  authToken: {
+    type: String,
+  },
+});
+
+mongoose.model("UserSession", UserSession, "UserSession");
+mongoose.model("User", User, "User");

@@ -5,7 +5,7 @@ const carbone = require("carbone");
 var mime = require("mime");
 var mongoose = require("mongoose");
 var Session = mongoose.model("session");
-// var User = mongoose.model("user");
+// var User = mongoose.model("User");
 var Invoice = mongoose.model("invoice");
 var InvoiceNumber = mongoose.model("invoice_number");
 // var _ = require("lodash");
@@ -144,7 +144,7 @@ methods.getInvoiceNumber = async (req, res) => {
     .exec((err, invoiceNumber) => {
       console.log({ invoiceNumber });
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -152,7 +152,7 @@ methods.getInvoiceNumber = async (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (invoiceNumber) {
-        //send response to client
+        //send response to user
         // invoiceNumber.invoice = invoiceNumber.invoice + 1;
         InvoiceNumber.findOneAndUpdate(
           {
@@ -164,7 +164,7 @@ methods.getInvoiceNumber = async (req, res) => {
           { new: true }
         ).exec((err, invoiceNumber) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -186,7 +186,7 @@ methods.getInvoiceNumber = async (req, res) => {
         });
         invoiceNumber.save((err) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -212,7 +212,7 @@ methods.getInvoice = async (req, res) => {
       .lean()
       .exec((err, invoices) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -220,7 +220,7 @@ methods.getInvoice = async (req, res) => {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -289,7 +289,7 @@ methods.getInvoice = async (req, res) => {
       .lean()
       .exec((err, invoices) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -299,7 +299,7 @@ methods.getInvoice = async (req, res) => {
         } else {
           Invoice.count(query, async function(err, totalRecords) {
             if (err) {
-              //send response to client
+              //send response to user
               response.error = true;
               response.status = 500;
               response.errors = err;
@@ -307,7 +307,7 @@ methods.getInvoice = async (req, res) => {
               response.data = null;
               return SendResponse(res);
             } else {
-              //send response to client
+              //send response to user
               response.error = false;
               response.status = 200;
               response.errors = null;
@@ -352,7 +352,7 @@ methods.generateDocReportv2 = async function(req, res) {
             // return
             if (err) {
               console.log(err);
-              // send response to client
+              // send response to user
               response.error = true;
               response.status = 500;
               response.errors = err;
@@ -361,7 +361,7 @@ methods.generateDocReportv2 = async function(req, res) {
               return SendResponse(res);
             } else {
               // console.log("Finish to create a Document file.\nTotal bytes created: " + written + "\n");
-              // send response to client
+              // send response to user
 
               var excelfile = `${reportPath}/${invoice._id}/invoice-${invoice._id}.pdf`;
               // var createDocxPath =
@@ -378,7 +378,7 @@ methods.generateDocReportv2 = async function(req, res) {
             }
           });
         } catch (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;

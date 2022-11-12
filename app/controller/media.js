@@ -90,7 +90,7 @@ methods.uploadMedia = (req, res) => {
 
   uploadfile(req, res, (err) => {
     if (err) {
-      //send response to client
+      //send response to user
       response.error = true;
       response.status = 500;
       response.errors = err;
@@ -99,7 +99,7 @@ methods.uploadMedia = (req, res) => {
       return SendResponse(res);
     } else {
       if (req.error) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -107,7 +107,7 @@ methods.uploadMedia = (req, res) => {
         response.data = null;
         return SendResponse(res);
       } else if (!req.fileName) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -115,7 +115,7 @@ methods.uploadMedia = (req, res) => {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -155,7 +155,7 @@ methods.uploadMediaProfile = function(req, res) {
       response.userMessage = "uploadfile error";
       return SendResponse(res);
     } else {
-      //send response to client
+      //send response to user
 
       if (fileName == "") {
         response.error = fileName == "";
@@ -170,7 +170,7 @@ methods.uploadMediaProfile = function(req, res) {
           _id: req.staffMember._id,
         }).exec((err, staffMember) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -178,7 +178,7 @@ methods.uploadMediaProfile = function(req, res) {
             response.memberMessage = "Some server error has occurred.";
             return SendResponse(res);
           } else if (!staffMember) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 400;
             response.errors = null;
@@ -189,7 +189,7 @@ methods.uploadMediaProfile = function(req, res) {
             staffMember.profilePicUrl = "/staffMember/profile/" + fileName;
             staffMember.save((err) => {
               if (err) {
-                //send response to client
+                //send response to user
                 response.error = true;
                 response.status = 500;
                 response.errors = err;
@@ -197,7 +197,7 @@ methods.uploadMediaProfile = function(req, res) {
                 response.memberMessage = "Some server error has occurred.";
                 return SendResponse(res);
               } else {
-                //send response to client
+                //send response to user
                 staffMember.deviceInfo = undefined;
                 staffMember.password = undefined;
                 response.error = false;

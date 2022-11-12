@@ -51,7 +51,7 @@ validation.checkFile = function(req, res, next) {
 
   uploadfile(req, res, function(err) {
     if (err) {
-      //send response to client
+      //send response to user
       response.error = true;
       response.status = 500;
       response.errors = err;
@@ -60,7 +60,7 @@ validation.checkFile = function(req, res, next) {
       return SendResponse(res);
     } else {
       if (req.error) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -68,7 +68,7 @@ validation.checkFile = function(req, res, next) {
         response.data = null;
         return SendResponse(res);
       } else if (!req.fileName) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -80,7 +80,7 @@ validation.checkFile = function(req, res, next) {
 
       function validateMembers(output) {
         if (Object.keys(output).length !== 1) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 400;
           response.errors = null;
@@ -160,7 +160,7 @@ validation.checkFile = function(req, res, next) {
         }
 
         if (!valid) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 400;
           response.errors = null;
@@ -181,7 +181,7 @@ validation.checkFile = function(req, res, next) {
             validateMembers([output]);
           })
           .catch((err) => {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -193,7 +193,7 @@ validation.checkFile = function(req, res, next) {
       } else {
         excel2Json(filePath, (err, output) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -201,7 +201,7 @@ validation.checkFile = function(req, res, next) {
             response.data = null;
             return SendResponse(res);
           } else if (!output) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 400;
             response.errors = null;
@@ -264,7 +264,7 @@ validation.checkADMembers = function(req, res, next) {
 
     ad.authenticate(membername, password, function(err, auth) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -279,7 +279,7 @@ validation.checkADMembers = function(req, res, next) {
         var query = "cn=*";
         ad.find(query, function(err, results) {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -293,7 +293,7 @@ validation.checkADMembers = function(req, res, next) {
         });
       } else {
         console.log("Authentication failed!");
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -325,7 +325,7 @@ validation.checkFile1 = function(req, res, next) {
 
   uploadfile(req, res, function(err) {
     if (err) {
-      //send response to client
+      //send response to user
       response.error = true;
       response.status = 500;
       response.errors = err;
@@ -334,7 +334,7 @@ validation.checkFile1 = function(req, res, next) {
       return SendResponse(res);
     } else {
       if (req.error) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -342,7 +342,7 @@ validation.checkFile1 = function(req, res, next) {
         response.data = null;
         return SendResponse(res);
       } else if (!req.fileName) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -354,7 +354,7 @@ validation.checkFile1 = function(req, res, next) {
 
       function validateMembers(output) {
         if (Object.keys(output).length !== 1) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 400;
           response.errors = null;
@@ -434,7 +434,7 @@ validation.checkFile1 = function(req, res, next) {
         }
 
         if (!valid) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 400;
           response.errors = null;
@@ -455,7 +455,7 @@ validation.checkFile1 = function(req, res, next) {
             validateMembers([output]);
           })
           .catch((err) => {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -467,7 +467,7 @@ validation.checkFile1 = function(req, res, next) {
       } else {
         excel2Json(filePath, (err, output) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -475,7 +475,7 @@ validation.checkFile1 = function(req, res, next) {
             response.data = null;
             return SendResponse(res);
           } else if (!output) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 400;
             response.errors = null;
@@ -537,7 +537,7 @@ validation.checkADMembers1 = function(req, res, next) {
 
     ad.authenticate(membername, password, function(err, auth) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -552,7 +552,7 @@ validation.checkADMembers1 = function(req, res, next) {
         var query = "cn=*";
         ad.find(query, function(err, results) {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -566,7 +566,7 @@ validation.checkADMembers1 = function(req, res, next) {
         });
       } else {
         console.log("Authentication failed!");
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -584,7 +584,7 @@ validation.checkValidPolicyPlan = function(req, res, next) {
   } else if (req.body.importType == "AD") {
     validation.checkADMembers(req, res, next);
   } else {
-    //send response to client
+    //send response to user
     response.error = true;
     response.status = 400;
     response.errors = null;

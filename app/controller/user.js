@@ -2,7 +2,7 @@ var cryptography = require("../libs/cryptography");
 var mongoose = require("mongoose");
 var jwt = require("jsonwebtoken");
 var session = require("../libs/session");
-var Client = mongoose.model("client");
+var User = mongoose.model("User");
 var Enquiry = mongoose.model("enquiry");
 var Session = mongoose.model("session");
 var config = require("../../config/config");
@@ -51,21 +51,24 @@ var methods = {};
  Routings/controller goes here
  */
 module.exports.controller = function(router) {
-  router.route("/contact").post(methods.clientContactUs);
+  router.route("/contact").post(methods.userContactUs);
+  router.route("/enquiry").post(session.checkUserToken, methods.userEnquiry);
+
   router
-    .route("/client")
-    .get(session.checkToken, methods.getClients)
-    .post(methods.createClient)
-    .put(session.checkToken, methods.updateClients)
-    .delete(session.checkToken, methods.deactivateClientId);
+    .route("/user")
+    .get(session.checkToken, methods.getUsers)
+    // .post(methods.createUser)
+    .put(session.checkToken, methods.updateUsers)
+    .delete(session.checkToken, methods.deactivateUserId);
+
   router
-    .route("/client/enquiries")
-    .get(session.checkToken, methods.getClientEnquiries)
-    // .post(methods.createClient)
-    .put(session.checkToken, methods.updateClientEnquiries);
-  // .delete(session.checkToken, methods.deactivateClientId);
+    .route("/user/enquiries")
+    .get(session.checkToken, methods.getUserEnquiries)
+    // .post(methods.createUser)
+    .put(session.checkToken, methods.updateUserEnquiries);
+  // .delete(session.checkToken, methods.deactivateUserId);
   router.route("/test").get(function(req, res) {
-    //send response to client
+    //send response to user
     var mailGenerator = new Mailgen({
       theme: "salted",
       product: {
@@ -111,10 +114,10 @@ module.exports.controller = function(router) {
 };
 
 /*===================================
-***   create new client  ***
+***   create new user  ***
 =====================================*/
 
-methods.clientContactUs = (req, res) => {
+methods.userContactUs = (req, res) => {
   req.checkBody("name", "name cannot be empty.").notEmpty();
   req.checkBody("email", "email cannot be empty.").notEmpty();
   req.checkBody("message", "message cannot be empty.").notEmpty();
@@ -129,26 +132,26 @@ methods.clientContactUs = (req, res) => {
     return SendResponse(res, 400);
   } else {
     //Database functions here
-    Client.findOne({
+    User.findOne({
       email: req.body.email,
-    }).exec((err, client) => {
+    }).exec((err, user) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
         response.data = null;
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
-      } else if (client) {
-        //send response to client
-        client.name = req.body.name;
-        client.email = req.body.email;
-        // client.contactNumber = req.body.contactNumber;
-        // client.country = req.body.country;
-        client.save((err) => {
+      } else if (user) {
+        //send response to user
+        user.name = req.body.name;
+        user.email = req.body.email;
+        // user.contactNumber = req.body.contactNumber;
+        // user.country = req.body.country;
+        user.save((err) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -157,14 +160,14 @@ methods.clientContactUs = (req, res) => {
             return SendResponse(res);
           } else {
             var enquiry = new Enquiry({
-              clientId: client._id,
+              userId: user._id,
               contactUs: true,
               subject: req.body.subject,
               message: req.body.message,
             });
             enquiry.save((err) => {
               if (err) {
-                //send response to client
+                //send response to user
                 response.error = true;
                 response.status = 500;
                 response.errors = err;
@@ -172,8 +175,8 @@ methods.clientContactUs = (req, res) => {
                 response.memberMessage = "Some server error has occurred.";
                 return SendResponse(res);
               } else {
-                //send response to client
-                //send response to client
+                //send response to user
+                //send response to user
                 var mailGenerator = new Mailgen({
                   theme: "salted",
                   product: {
@@ -220,12 +223,12 @@ methods.clientContactUs = (req, res) => {
           }
         });
       } else {
-        var client = new Client({
+        var user = new User({
           ...req.body,
         });
-        client.save((err) => {
+        user.save((err) => {
           if (err) {
-            //send response to client
+            //send response to user
             response.error = true;
             response.status = 500;
             response.errors = err;
@@ -234,14 +237,14 @@ methods.clientContactUs = (req, res) => {
             return SendResponse(res);
           } else {
             var enquiry = new Enquiry({
-              clientId: client._id,
+              userId: user._id,
               contactUs: true,
               subject: req.body.subject,
               message: req.body.message,
             });
             enquiry.save((err) => {
               if (err) {
-                //send response to client
+                //send response to user
                 response.error = true;
                 response.status = 500;
                 response.errors = err;
@@ -249,7 +252,7 @@ methods.clientContactUs = (req, res) => {
                 response.memberMessage = "Some server error has occurred.";
                 return SendResponse(res);
               } else {
-                //send response to client
+                //send response to user
                 var mailGenerator = new Mailgen({
                   theme: "salted",
                   product: {
@@ -285,7 +288,7 @@ methods.clientContactUs = (req, res) => {
                   "Welcome to Arab Tech Store",
                   emailBody
                 );
-                //send response to client
+                //send response to user
                 response.error = false;
                 response.status = 200;
                 response.errors = null;
@@ -301,17 +304,17 @@ methods.clientContactUs = (req, res) => {
   }
 };
 
-/*-----  End of createclient  ------*/
+/*-----  End of createuser  ------*/
 /*===================================
-***   create new client  ***
+***   create new user  ***
 =====================================*/
 
-methods.createClient = (req, res) => {
-  req.checkBody("name", "name cannot be empty.").notEmpty();
-  req.checkBody("email", "email cannot be empty.").notEmpty();
-  req.checkBody("contactNumber", "contactNumber cannot be empty.").notEmpty();
+methods.userEnquiry = (req, res) => {
+  // req.checkBody("name", "name cannot be empty.").notEmpty();
+  // req.checkBody("email", "email cannot be empty.").notEmpty();
+  // req.checkBody("contactNumber", "contactNumber cannot be empty.").notEmpty();
   req.checkBody("quantity", "quantity cannot be empty.").notEmpty();
-  req.checkBody("country", "country cannot be empty.").notEmpty();
+  // req.checkBody("country", "country cannot be empty.").notEmpty();
   req.checkBody("productId", "productId cannot be empty.").notEmpty();
 
   var errors = req.validationErrors(true);
@@ -322,211 +325,81 @@ methods.createClient = (req, res) => {
     response.errors = errors;
     return SendResponse(res, 400);
   } else {
-    //Database functions here
-    /**
-     * Hello Name_of_Customer
-
-We have received your enquiry. We will contact you within next 24 hours.
-
-Thanking your,
-Arab Tech Store*
-     */
-    Client.findOne({
-      email: req.body.email,
-    }).exec((err, client) => {
+    var user = req.user;
+    var enquiry = new Enquiry({
+      userId: user._id,
+      quantity: req.body.quantity,
+      productId: req.body.productId,
+      message: req.body.message,
+    });
+    enquiry.save((err) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
         response.data = null;
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
-      } else if (client) {
-        if (!client.isApproved) {
-          response.error = false;
-          response.status = 200;
-          response.errors = null;
-          response.data = null;
-          response.memberMessage = "Request send successfully.";
-          return SendResponse(res);
-        } else {
-          //send response to client
-          client.name = req.body.name;
-          client.email = req.body.email;
-          client.contactNumber = req.body.contactNumber || client.contactNumber;
-          // client.quantity = req.body.quantity;
-          client.country = req.body.country || client.country;
-          // client.productId = req.body.productId;
-          client.save((err) => {
-            if (err) {
-              //send response to client
-              response.error = true;
-              response.status = 500;
-              response.errors = err;
-              response.data = null;
-              response.memberMessage = "Some server error has occurred.";
-              return SendResponse(res);
-            } else {
-              var enquiry = new Enquiry({
-                clientId: client._id,
-                quantity: req.body.quantity,
-                productId: req.body.productId,
-                message: req.body.message,
-              });
-              enquiry.save((err) => {
-                if (err) {
-                  //send response to client
-                  response.error = true;
-                  response.status = 500;
-                  response.errors = err;
-                  response.data = null;
-                  response.memberMessage = "Some server error has occurred.";
-                  return SendResponse(res);
-                } else {
-                  //send response to client
-                  var mailGenerator = new Mailgen({
-                    theme: "salted",
-                    product: {
-                      // Appears in header & footer of e-mails
-                      name: "Arab Tech Store",
-                      link: "http://arabtechstore.com",
-                      logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
-                    },
-                  });
-
-                  var email = {
-                    body: {
-                      name: req.body.name,
-                      link: ` `,
-                      intro:
-                        "We have received your enquiry. We will contact you within next 24 hours.",
-                      action: {
-                        instructions: "", // `To get started with Arab Tech Store use this email ${req.body.email} and password ${oneTimePassword}, please click here:`,
-                        button: {
-                          color: "#002b7a", // Optional action button color
-                          text: "Go to Website",
-                          link: `http://arabtechstore.com`,
-                        },
-                      },
-                      outro:
-                        "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
-                    },
-                  };
-                  // Generate an HTML email with the provided contents
-                  var emailBody = mailGenerator.generate(email);
-                  mail.sendMail(
-                    req.body.email,
-                    "Welcome to Arab Tech Store",
-                    emailBody
-                  );
-                  response.error = false;
-                  response.status = 200;
-                  response.errors = null;
-                  response.data = null;
-                  response.memberMessage = "Request send successfully.";
-                  return SendResponse(res);
-                }
-              });
-            }
-          });
-        }
       } else {
-        var client = new Client({
-          ...req.body,
+        //send response to user
+        var mailGenerator = new Mailgen({
+          theme: "salted",
+          product: {
+            // Appears in header & footer of e-mails
+            name: "Arab Tech Store",
+            link: "http://arabtechstore.com",
+            logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
+          },
         });
-        client.save((err) => {
-          if (err) {
-            //send response to client
-            response.error = true;
-            response.status = 500;
-            response.errors = err;
-            response.data = null;
-            response.memberMessage = "Some server error has occurred.";
-            return SendResponse(res);
-          } else {
-            var enquiry = new Enquiry({
-              clientId: client._id,
-              quantity: req.body.quantity,
-              productId: req.body.productId,
-              message: req.body.message,
-            });
-            enquiry.save((err) => {
-              if (err) {
-                //send response to client
-                response.error = true;
-                response.status = 500;
-                response.errors = err;
-                response.data = null;
-                response.memberMessage = "Some server error has occurred.";
-                return SendResponse(res);
-              } else {
-                //send response to client
-                var mailGenerator = new Mailgen({
-                  theme: "salted",
-                  product: {
-                    // Appears in header & footer of e-mails
-                    name: "Arab Tech Store",
-                    link: "http://arabtechstore.com",
-                    logo: `http://arabtechstore.com/images/icon/ATS_Logo.png`,
-                  },
-                });
 
-                var email = {
-                  body: {
-                    name: req.body.name,
-                    link: ` `,
-                    intro:
-                      "We have received your enquiry. We will contact you within next 24 hours.",
-                    action: {
-                      instructions: "", // `To get started with Arab Tech Store use this email ${req.body.email} and password ${oneTimePassword}, please click here:`,
-                      button: {
-                        color: "#002b7a", // Optional action button color
-                        text: "Go to Website",
-                        link: `http://arabtechstore.com`,
-                      },
-                    },
-                    outro:
-                      "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
-                  },
-                };
-                // Generate an HTML email with the provided contents
-                var emailBody = mailGenerator.generate(email);
-                mail.sendMail(
-                  req.body.email,
-                  "Welcome to Arab Tech Store",
-                  emailBody
-                );
-                response.error = false;
-                response.status = 200;
-                response.errors = null;
-                response.data = null;
-                response.memberMessage = "Request send successfully.";
-                return SendResponse(res);
-              }
-            });
-          }
-        });
+        var email = {
+          body: {
+            name: user.name,
+            link: ` `,
+            intro:
+              "We have received your enquiry. We will contact you within next 24 hours.",
+            action: {
+              instructions: "", // `To get started with Arab Tech Store use this email ${user.email} and password ${oneTimePassword}, please click here:`,
+              button: {
+                color: "#002b7a", // Optional action button color
+                text: "Go to Website",
+                link: `http://arabtechstore.com`,
+              },
+            },
+            outro:
+              "Need help, or have questions? Just mail us to salescoordinator@arabtechstore.com, we'd be happy to help.",
+          },
+        };
+        // Generate an HTML email with the provided contents
+        var emailBody = mailGenerator.generate(email);
+        mail.sendMail(user.email, "Welcome to Arab Tech Store", emailBody);
+        response.error = false;
+        response.status = 200;
+        response.errors = null;
+        response.data = null;
+        response.memberMessage = "Request send successfully.";
+        return SendResponse(res);
       }
     });
   }
 };
 
-/*-----  End of createclient  ------*/
+/*-----  End of createuser  ------*/
 
 /*=====================================
-***   get list of clients  ***
+***   get list of users  ***
 =======================================*/
 
-methods.getClients = async (req, res) => {
-  if (req.query.clientId) {
-    Client.findOne({ _id: req.query.clientId })
+methods.getUsers = async (req, res) => {
+  if (req.query.userId) {
+    User.findOne({ _id: req.query.userId })
       .populate("productId")
       .populate("adminId", "name profilePicUrl")
       .lean()
-      .exec((err, clients) => {
+      .exec((err, users) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -534,12 +407,12 @@ methods.getClients = async (req, res) => {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
-          response.data = clients;
-          response.memberMessage = "Client info fetched successfully.";
+          response.data = users;
+          response.memberMessage = "User info fetched successfully.";
           return SendResponse(res);
         }
       });
@@ -547,8 +420,8 @@ methods.getClients = async (req, res) => {
     var query = {
       active: true,
     };
-    if (req.query.clientStatus && req.query.clientStatus != "all") {
-      query.isApproved = req.query.clientStatus === "approved" ? true : false;
+    if (req.query.userStatus && req.query.userStatus != "all") {
+      query.isApproved = req.query.userStatus === "approved" ? true : false;
     }
     query["$and"] = [];
     if (req.query.searchText && req.query.searchText !== "") {
@@ -593,7 +466,7 @@ methods.getClients = async (req, res) => {
     console.log({ query }, query["$and"], "--------");
     var limit = req.query.limit ? parseInt(req.query.limit) : 10;
     var page = req.query.page ? parseInt(req.query.page) : 0;
-    Client.find(query)
+    User.find(query)
       .populate("createrId", "name profilePicUrl")
       .sort({
         createdAt: -1,
@@ -601,9 +474,9 @@ methods.getClients = async (req, res) => {
       .limit(limit)
       .skip(page * limit)
       .lean()
-      .exec((err, clients) => {
+      .exec((err, users) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -611,9 +484,9 @@ methods.getClients = async (req, res) => {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else {
-          Client.count(query, async function(err, totalRecords) {
+          User.count(query, async function(err, totalRecords) {
             if (err) {
-              //send response to client
+              //send response to user
               response.error = true;
               response.status = 500;
               response.errors = err;
@@ -621,13 +494,13 @@ methods.getClients = async (req, res) => {
               response.data = null;
               return SendResponse(res);
             } else {
-              //send response to client
+              //send response to user
               response.error = false;
               response.status = 200;
               response.errors = null;
-              response.data = clients;
+              response.data = users;
               response.totalRecords = totalRecords;
-              response.memberMessage = "List of clients fetched successfully.";
+              response.memberMessage = "List of users fetched successfully.";
               return SendResponse(res);
             }
           });
@@ -637,18 +510,18 @@ methods.getClients = async (req, res) => {
 };
 
 /*=====================================
-***   get list of client enquiries ***
+***   get list of user enquiries ***
 =======================================*/
-methods.getClientEnquiries = async (req, res) => {
+methods.getUserEnquiries = async (req, res) => {
   if (req.query.enquiryId) {
     Enquiry.findOne({ _id: req.query.enquiryId })
       .populate("productId")
-      .populate("clientId")
+      .populate("userId")
       .populate("staffMemberId", "name profilePicUrl")
       .lean()
       .exec((err, enquiry) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -656,7 +529,7 @@ methods.getClientEnquiries = async (req, res) => {
           response.memberMessage = "Some server error has occurred.";
           return SendResponse(res);
         } else {
-          //send response to client
+          //send response to user
           response.error = false;
           response.status = 200;
           response.errors = null;
@@ -670,8 +543,8 @@ methods.getClientEnquiries = async (req, res) => {
       active: true,
       contactUs: { $eq: req.query.contactUs ? req.query.contactUs : false },
     };
-    if (req.query.clientId) {
-      query.clientId = req.query.clientId;
+    if (req.query.userId) {
+      query.userId = req.query.userId;
     }
     if (req.query.enquiryStatus && req.query.enquiryStatus != "all") {
       query.isApproved = req.query.enquiryStatus === "approved" ? true : false;
@@ -721,7 +594,7 @@ methods.getClientEnquiries = async (req, res) => {
     var page = req.query.page ? parseInt(req.query.page) : 0;
     Enquiry.find(query)
       .populate("productId")
-      .populate("clientId")
+      .populate("userId")
       .populate("staffMemberId", "name profilePicUrl")
       .sort({
         createdAt: -1,
@@ -731,7 +604,7 @@ methods.getClientEnquiries = async (req, res) => {
       .lean()
       .exec((err, enquiries) => {
         if (err) {
-          //send response to client
+          //send response to user
           response.error = true;
           response.status = 500;
           response.errors = err;
@@ -741,7 +614,7 @@ methods.getClientEnquiries = async (req, res) => {
         } else {
           Enquiry.count(query, async function(err, totalRecords) {
             if (err) {
-              //send response to client
+              //send response to user
               response.error = true;
               response.status = 500;
               response.errors = err;
@@ -749,7 +622,7 @@ methods.getClientEnquiries = async (req, res) => {
               response.data = null;
               return SendResponse(res);
             } else {
-              //send response to client
+              //send response to user
               response.error = false;
               response.status = 200;
               response.errors = null;
@@ -763,13 +636,13 @@ methods.getClientEnquiries = async (req, res) => {
       });
   }
 };
-/*-----  End of getClientEnquiries  ------*/
+/*-----  End of getUserEnquiries  ------*/
 
 /*========================================
-***   update existnig client enquiries  ***
+***   update existnig user enquiries  ***
 ==========================================*/
 
-methods.updateClientEnquiries = (req, res) => {
+methods.updateUserEnquiries = (req, res) => {
   req.checkBody("enquiryId", "enquiryId cannot be empty.").notEmpty();
   req.checkBody("isApproved", "isApproved cannot be empty.").notEmpty();
   var errors = req.validationErrors(true);
@@ -792,7 +665,7 @@ methods.updateClientEnquiries = (req, res) => {
       { new: true }
     ).exec((err, enquiry) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -800,7 +673,7 @@ methods.updateClientEnquiries = (req, res) => {
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (!enquiry) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
@@ -808,7 +681,7 @@ methods.updateClientEnquiries = (req, res) => {
         response.memberMessage = "enquiry not found.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -820,13 +693,13 @@ methods.updateClientEnquiries = (req, res) => {
   }
 };
 
-/*-----  End of updateClientEnquiries  ------*/
+/*-----  End of updateUserEnquiries  ------*/
 /*========================================
-***   update existnig client  ***
+***   update existnig user  ***
 ==========================================*/
 
-methods.updateClients = (req, res) => {
-  req.checkBody("clientId", "clientId cannot be empty.").notEmpty();
+methods.updateUsers = (req, res) => {
+  req.checkBody("userId", "userId cannot be empty.").notEmpty();
   // req.checkBody("name", "name cannot be empty.").notEmpty();
   // req.checkBody("contactNumber", "contactNumber cannot be empty.").notEmpty();
   // // req.checkBody("address", "address cannot be empty.").notEmpty();
@@ -841,52 +714,52 @@ methods.updateClients = (req, res) => {
   } else {
     //Database functions here
 
-    Client.findOneAndUpdate(
+    User.findOneAndUpdate(
       {
-        _id: req.body.clientId,
+        _id: req.body.userId,
       },
       {
         ...req.body,
         staffMemberId: req.staffMember._id,
       },
       { new: true }
-    ).exec((err, client) => {
+    ).exec((err, user) => {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
         response.data = null;
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
-      } else if (!client) {
-        //send response to client
+      } else if (!user) {
+        //send response to user
         response.error = true;
         response.status = 400;
         response.errors = null;
         response.data = null;
-        response.memberMessage = "client not found.";
+        response.memberMessage = "user not found.";
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
-        response.data = client;
-        response.memberMessage = "client has updated successfully.";
+        response.data = user;
+        response.memberMessage = "user has updated successfully.";
         return SendResponse(res);
       }
     });
   }
 };
 
-/*-----  End of updateclient  ------*/
+/*-----  End of updateuser  ------*/
 /*====================================
- ***   deactivate existnig Client   ***
+ ***   deactivate existnig User   ***
  ======================================*/
-methods.deactivateClientId = function(req, res) {
+methods.deactivateUserId = function(req, res) {
   //Check for POST request errors.
-  req.checkBody("clientId", "clientId cannot be empty.").notEmpty();
+  req.checkBody("userId", "userId cannot be empty.").notEmpty();
   var errors = req.validationErrors(true);
   if (errors) {
     response.error = true;
@@ -895,11 +768,11 @@ methods.deactivateClientId = function(req, res) {
     response.errors = errors;
     return SendResponse(res, 400);
   } else {
-    Client.findOneAndUpdate({ _id: req.body.clientId }, { active: 0 }, function(
+    User.findOneAndUpdate({ _id: req.body.userId }, { active: 0 }, function(
       err
     ) {
       if (err) {
-        //send response to client
+        //send response to user
         response.error = true;
         response.status = 500;
         response.errors = err;
@@ -907,7 +780,7 @@ methods.deactivateClientId = function(req, res) {
         response.data = null;
         return SendResponse(res);
       } else {
-        //send response to client
+        //send response to user
         response.error = false;
         response.status = 200;
         response.errors = null;
@@ -918,4 +791,4 @@ methods.deactivateClientId = function(req, res) {
     });
   }
 };
-/*-----  End of deactivateClientId  ------*/
+/*-----  End of deactivateUserId  ------*/

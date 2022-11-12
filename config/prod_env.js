@@ -3,8 +3,7 @@
  */
 
 module.exports = {
-  // db: 'mongodb://myUserAdmin:abc123@localhost:27017/licApp?authSource=admin',
-  db: process.env.MONGO_URL || 'mongodb://localhost:27017/arab_tech_store"',
+  db: `mongodb://aviral:aviral%402022@arabtechstore.com:27017/tech_store?authSource=admin`,
   logDir: "/var/log/api/", //@todo : check if log directory exits, if not create one.
   sessionSecret: "thisisareallylongandbigsecrettoken",
   encryptionSecret: "securetokentoencrypt",
