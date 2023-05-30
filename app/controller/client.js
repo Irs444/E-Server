@@ -330,7 +330,8 @@ Arab Tech Store*
         response.memberMessage = "Some server error has occurred.";
         return SendResponse(res);
       } else if (client) {
-        if (!client.isApproved) {
+        if (false) {
+          // if (!client.isApproved) {
           response.error = false;
           response.status = 200;
           response.errors = null;
