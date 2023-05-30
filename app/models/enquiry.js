@@ -13,6 +13,11 @@ var Enquiry = new Schema({
     default: null,
     ref: "user",
   },
+  clientId: {
+    type: ObjectId,
+    default: null,
+    ref: "client",
+  },
   staffMemberId: {
     type: ObjectId,
     default: null,
