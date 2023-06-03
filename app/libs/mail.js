@@ -16,7 +16,7 @@ http://mail.cloudwebmail.net/
     secure: true,
     auth: {
       user: "salescoordinator@arabtechstore.com",
-      pass: "otp@2020",
+      pass: "Aa!7607862383", //"otp@2020"
       // pass: "zG&LYE4dp?LA]rJ",
       // pass: "zG%26LYE4dp%3FLA%5DrJ",
     },
@@ -32,7 +32,7 @@ http://mail.cloudwebmail.net/
   //   port: process.env.SMTP_PORT || 26, //465,
   //   auth: {
   //     user: process.env.SMTP_USER || "otp@gaviral.in",
-  //     pass: process.env.SMTP_PASSWORD || "otp@2020",
+  //     pass: process.env.SMTP_PASSWORD || "Aa!7607862383",
   //   },
   //   logger: true,
   //   requireTLS: true, //Force TLS
