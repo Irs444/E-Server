@@ -289,4 +289,5 @@ report.generateStaticDoc = async (id, invoice, callback) => {
 
   // callback(null, createDocxPath);
 };
+
 module.exports = report;
