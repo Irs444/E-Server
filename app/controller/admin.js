@@ -16,72 +16,72 @@ console.log(
   process.env.DEFAULT_MEMBER_CONTACT
 );
 
-Dealer.findOne({
-  $or: [
-    {
-      contactNumber: process.env.DEFAULT_MEMBER_CONTACT,
-    },
-    {
-      email: process.env.DEFAULT_MEMBER,
-    },
-  ],
-}).exec((err, dealer) => {
-  if (!err && !dealer) {
-    var newDealer = new Dealer({
-      name: "Super Admin",
-      contactNumber: process.env.DEFAULT_MEMBER_CONTACT,
-      // dealerCode: process.env.DEFAULT_DEALER_CODE.toString(),
-      email: process.env.DEFAULT_MEMBER,
-    }).save(function(err, result) {
-      console.log(
-        "process.env.DEFAULT_MEMBER_CONTACT",
-        process.env.DEFAULT_MEMBER_CONTACT
-      );
+// Dealer.findOne({
+//   $or: [
+//     {
+//       contactNumber: process.env.DEFAULT_MEMBER_CONTACT,
+//     },
+//     {
+//       email: process.env.DEFAULT_MEMBER,
+//     },
+//   ],
+// }).exec((err, dealer) => {
+//   if (!err && !dealer) {
+//     var newDealer = new Dealer({
+//       name: "Super Admin",
+//       contactNumber: process.env.DEFAULT_MEMBER_CONTACT,
+//       // dealerCode: process.env.DEFAULT_DEALER_CODE.toString(),
+//       email: process.env.DEFAULT_MEMBER,
+//     }).save(function(err, result) {
+//       console.log(
+//         "process.env.DEFAULT_MEMBER_CONTACT",
+//         process.env.DEFAULT_MEMBER_CONTACT
+//       );
 
-      if (err) {
-        console.log("error while creating default staffMember ", err);
-      } else {
-        console.log("-----------newDealer---", { newDealer });
-        console.log("-----------admin---", { result });
-        StaffMember.findOne({
-          email: process.env.DEFAULT_MEMBER,
-        }).exec((err, staffMember) => {
-          console.log("-----------admin---", { staffMember });
-          if (!err && !staffMember) {
-            new StaffMember({
-              name: "Super Admin",
-              email: process.env.DEFAULT_MEMBER,
-              accessLevel: 1,
-              dealerId: result._id,
-              password: cryptography.encrypt(process.env.DEFAULT_PASSWORD),
-            }).save((err) =>
-              console.log("error while creating default staffMember ", err)
-            );
-          }
-        });
-      }
-    });
-  } else if (dealer) {
-    StaffMember.findOne({
-      email: process.env.DEFAULT_MEMBER,
-    }).exec((err, staffMember) => {
-      console.log("-----------admin---", { staffMember });
-      if (!err && !staffMember) {
-        new StaffMember({
-          name: "Super Admin",
-          email: process.env.DEFAULT_MEMBER,
-          accessLevel: 1,
-          dealerId: dealer._id,
-          password: cryptography.encrypt(process.env.DEFAULT_PASSWORD),
-        }).save((err) =>
-          console.log("error while creating default staffMember ", err)
-        );
-      }
-    });
-  }
-}); /*------- create default super admin  --------*/
+//       if (err) {
+//         console.log("error while creating default staffMember ", err);
+//       } else {
+//         console.log("-----------newDealer---", { newDealer });
+//         console.log("-----------admin---", { result });
+//         StaffMember.findOne({
+//           email: process.env.DEFAULT_MEMBER,
+//         }).exec((err, staffMember) => {
+//           console.log("-----------admin---", { staffMember });
+//           if (!err && !staffMember) {
+//             new StaffMember({
+//               name: "Super Admin",
+//               email: process.env.DEFAULT_MEMBER,
+//               accessLevel: 1,
+//               dealerId: result._id,
+//               password: cryptography.encrypt(process.env.DEFAULT_PASSWORD),
+//             }).save((err) =>
+//               console.log("error while creating default staffMember ", err)
+//             );
+//           }
+//         });
+//       }
+//     });
+//   } else if (dealer) {
+//     StaffMember.findOne({
+//       email: process.env.DEFAULT_MEMBER,
+//     }).exec((err, staffMember) => {
+//       console.log("-----------admin---", { staffMember });
+//       if (!err && !staffMember) {
+//         new StaffMember({
+//           name: "Super Admin",
+//           email: process.env.DEFAULT_MEMBER,
+//           accessLevel: 1,
+//           dealerId: dealer._id,
+//           password: cryptography.encrypt(process.env.DEFAULT_PASSWORD),
+//         }).save((err) =>
+//           console.log("error while creating default staffMember ", err)
+//         );
+//       }
+//     });
+//   }
+// });
 
-console.log(cryptography.decrypt("28bef68237637b77"));
+/*------- create default super admin  --------*/
 
 /* the response object for API
    error : true / false 

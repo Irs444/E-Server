@@ -4,12 +4,14 @@ var app = express();
 var mongoose = require("mongoose");
 var config = require("./config/config");
 var fs = require("fs");
+const { connectDB } = require("./config/db");
 var port = process.env.PORT || 8090; // set our port
 
 const aesWrapper = require("./app/libs/aes-wrapper");
 const rsaWrapper = require("./app/libs/rsa-wrapper");
 rsaWrapper.initLoadServerKeys(__dirname);
 rsaWrapper.serverExampleEncrypt();
+
 
 global.mediaProfilePath = __dirname + "/media/profileImages";
 global.mediaPath = __dirname + "/media";
@@ -18,22 +20,24 @@ global.reportPath = __dirname + "/report";
 global.sample = __dirname + "/public/sample";
 global.AESKey = aesWrapper.generateKey();
 
-// Connect to mongodb
-var connect = function() {
-  var options = {
-    keepAlive: 1,
-    useMongoUser: true,
-  };
+//------- (Connect to mongodb) --------------//
+connectDB();
 
-  mongoose.connect(config.db, options);
-};
-console.log({ connect }, "-----connect--------");
-connect();
-mongoose.connection.on("error", console.log);
-mongoose.connection.on("disconnected", connect);
+// var connect = function() {
+//   var options = {
+//     keepAlive: 1,
+//     useMongoUser: true,
+//   };
+
+//   mongoose.connect(config.db, options);
+// };
+// console.log({ connect }, "-----connect--------");
+// connect();
+// mongoose.connection.on("error", console.log);
+// mongoose.connection.on("disconnected", connect);
 
 // Bootstrap models
-fs.readdirSync(__dirname + "/app/models").forEach(function(file) {
+fs.readdirSync(__dirname + "/app/models").forEach(function (file) {
   console.log({ file });
   if (~file.indexOf(".js")) require(__dirname + "/app/models/" + file);
 });

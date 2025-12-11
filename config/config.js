@@ -22,8 +22,8 @@ var defaults = {
  */
 
 module.exports = {
-	development: extend(development, defaults),
-	test: extend(test, defaults),
-	production: extend(production, defaults),
-	staging: extend(staging, defaults)
+	development: Object.assign(development, defaults),
+	test: Object.assign(test, defaults),
+	production: Object.assign(production, defaults),
+	staging: Object.assign(staging, defaults)
 }[process.env.NODE_ENV || 'development'];
